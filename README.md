@@ -8,3 +8,5 @@ Express: 4.17.1
 npm ci express --save
 MySQL: 2.18.1
 npm ci mysql --save
+DotENV: 10.0.0
+npm ci dotenv --save
