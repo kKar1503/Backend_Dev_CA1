@@ -10,3 +10,5 @@ MySQL: 2.18.1
 npm ci mysql --save
 DotENV: 10.0.0
 npm ci dotenv --save
+
+In order to connect to your local database, please do add a .env file in the main project folder, with the variables: DB_HOST, DB_USER, DB_PORT, DB_PASS
