@@ -1,2 +1,1 @@
-console.log("hhh");
-console.log("hhhhhhh");
+// Please don't add more hhhhh
