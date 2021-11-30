@@ -7,6 +7,10 @@ const app = express(); // create an express obj and export it
 const bodyParser = require('body-parser'); 
                     // two dots: up one level
 const User = require("../model/user");
+const Category = require("../model/category");
+const Interest = require("../model/interest");
+const Product = require("../model/product");
+const Review = require("../model/review");
 
 //----------------------------------------
 // config
@@ -24,6 +28,22 @@ app.use(jsonParser);//parse json data
 //----------------------------------------
 // endpoints
 //----------------------------------------
+
+// For user db
+
+
+// For category db
+
+
+// For product db
+
+
+// For review db
+
+
+// For interest db
+
+
 
 
 
