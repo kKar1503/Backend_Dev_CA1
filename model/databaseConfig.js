@@ -1,31 +1,38 @@
 //----------------------------------------
-// imports
+// BackEnd Web Development Assignment 1
+// Students:      Li Kehan & Yam Kar Lok
+// Admission No:  P2111575 & P2123181
+// Class:         DIT/FT/1B/04
+//----------------------------------------
+
+//----------------------------------------
+// Imports
 //----------------------------------------
 const mysql = require("mysql");
 require("dotenv").config();
 
 //----------------------------------------
-// main code implementations
+// Main Code Implementations
 //----------------------------------------
 var dbconnect = {
     getConnection: function () {
-    // here just build connection, but haven't yet start the connection
+    // Here just build connection, but haven't yet start the connection
       var conn = mysql.createConnection({
         host: process.env.DB_HOST,
         port: process.env.DB_PORT,
         user: process.env.DB_USER,
-        password: process.env.DB_PASS, //your own password
+        password: process.env.DB_PASS, // Password of the MySQL Database
         database: 'it_products',
         dateStrings: true,
         multipleStatements: true
       });
   
-      return conn; // returning a connection obj
+      return conn; // Returning a Connection Object
     }
 };
 
   
 //----------------------------------------
-// export
+// Module Export
 //----------------------------------------
 module.exports = dbconnect;
