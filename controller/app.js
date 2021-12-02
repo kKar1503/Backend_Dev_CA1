@@ -1,53 +1,58 @@
 //----------------------------------------
-// imports
+// BackEnd Web Development Assignment 1
+// Students:        Li Kehan & Yam Kar Lok
+// Admission No:    P2111575 & P2123181
+// Class:           DIT/FT/1B/04
+// Filename:        app.js
+//----------------------------------------
+
+//----------------------------------------
+// Imports
 //----------------------------------------
 const express = require('express');
-const app = express(); // create an express obj and export it
+const app = express(); // Creates an Express Object and export it
 
 const bodyParser = require('body-parser'); 
-                    // two dots: up one level
-const User = require("../model/user");
-const Category = require("../model/category");
-const Interest = require("../model/interest");
-const Product = require("../model/product");
-const Review = require("../model/review");
+const User = require("../model/user.js");
+const Category = require("../model/category.js");
+const Interest = require("../model/interest.js");
+const Product = require("../model/product.js");
+const Review = require("../model/review.js");
 
 //----------------------------------------
-// config
+// Configurations for bodyParser
 //----------------------------------------
 var urlencodedParser = bodyParser.urlencoded({ extended: false });
 var jsonParser = bodyParser.json();
 
 //----------------------------------------
-// MF Configrations
+// MF Configurations
 //----------------------------------------
-app.use(urlencodedParser);//attach body-parser middleware
-app.use(jsonParser);//parse json data
+app.use(urlencodedParser); // Attach body-parser middleware
+app.use(jsonParser); // Parse JSON data
 
 
 //----------------------------------------
-// endpoints
+// Endpoints
 //----------------------------------------
 
-// For user db
+// For User db
 
 
-// For category db
+// For Category db
 
 
-// For product db
+// For Product db
 
 
-// For review db
+// For Review db
 
 
-// For interest db
-
-
+// For Interest db
 
 
 
 //----------------------------------------
-// exports
+// Module Exports
 //----------------------------------------
 module.exports = app;

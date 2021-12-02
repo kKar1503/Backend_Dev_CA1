@@ -1,9 +1,9 @@
 //----------------------------------------
 // BackEnd Web Development Assignment 1
-// Students:      Li Kehan & Yam Kar Lok
-// Admission No:  P2111575 & P2123181
-// Class:         DIT/FT/1B/04
-// Filename:      server.js
+// Students:        Li Kehan & Yam Kar Lok
+// Admission No:    P2111575 & P2123181
+// Class:           DIT/FT/1B/04
+// Filename:        server.js
 //----------------------------------------
 
 //----------------------------------------
@@ -23,4 +23,4 @@ var hostname="localhost";
 
 app.listen(port, hostname, () => {
     console.log(`Server started and accessible via http://${hostname}:${port}/`);
-  });
+});
