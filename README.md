@@ -12,3 +12,5 @@ DotENV: 10.0.0
 npm ci dotenv --save
 
 In order to connect to your local database, please do add a .env file in the main project folder, with the variables: DB_HOST, DB_USER, DB_PORT, DB_PASS
+
+Run the SQL query in it_product_db_init_with_data.sql to generate a new schema "it_products" along with all structured tables and datas.
