@@ -15,8 +15,9 @@ var dbconnect = {
         port: process.env.DB_PORT,
         user: process.env.DB_USER,
         password: process.env.DB_PASS, //your own password
-        database: 'assignment',
-        dateStrings: true
+        database: 'it_products',
+        dateStrings: true,
+        multipleStatements: true
       });
   
       return conn; // returning a connection obj
