@@ -12,19 +12,21 @@ This project supports API with a self-hosted SQL database with the provided SQL 
 
 ## Features
 
-This project supports the following API:
-- Adds new user to database
-- Returns all active users in database
-- Returns single user given their userid
-- Updates single user 
-- Adds new category to database
-- Returns all category
-- Adds new product to database
-- Returns product given its productid
-- Deletes a product given its productid
-- Adds a review for a product listing
-- Returns all review of a particular product, along with the username of reviewer
-- Adds a category interest under a user with a many-to-many relation
+-This project supports the following API:
+    - Adds new user to database
+    - Returns all active users in database
+    - Returns single user given their userid
+    - Updates single user 
+    - Adds new category to database
+    - Returns all category
+    - Adds new product to database
+    - Returns product given its productid
+    - Deletes a product given its productid
+    - Adds a review for a product listing
+    - Returns all review of a particular product, along with the username of reviewer
+    - Adds a category interest under a user with a many-to-many relation
+-This project includes the following advance features:
+    - Log file system to manage general logging and error logging.
 
 ## Setup
 

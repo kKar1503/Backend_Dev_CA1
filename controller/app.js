@@ -9,8 +9,11 @@
 //----------------------------------------
 // Imports
 //----------------------------------------
-const express = require('express');
+const express = require('express'); 
 const app = express(); // Creates an Express Object and export it
+
+const { Console } = require('console'); // Import Console Module for generating log files
+const fs = require('fs'); // Import File System Module
 
 const bodyParser = require('body-parser'); 
 const User = require("../model/user.js");
@@ -18,6 +21,25 @@ const Category = require("../model/category.js");
 const Interest = require("../model/interest.js");
 const Product = require("../model/product.js");
 const Review = require("../model/review.js");
+
+//----------------------------------------
+// Creating a Log File System
+//----------------------------------------
+
+const logger = new Console({ // Create a new console object to handle stdout (logger.log) and stderr (logger.error)
+    stdout: fs.createWriteStream('Activity_Log.txt', {flags: 'a'}),
+    stderr: fs.createWriteStream('Error_Log.txt', {flags: 'a'})
+});
+
+function actLog(ip, activity) { // Creates a log files for general logging
+    timestamp = new Date().toLocaleString("en-US",{timeZone: "Asia/Singapore"});
+    logger.log('[Request from: ' + ip + ']\n[Timestamp: ' + timestamp + ']\n' + JSON.stringify(activity) + '\n');
+};
+
+function errLog(ip, err) {  // Creates a log files for error logging
+    timestamp = new Date().toLocaleString("en-US",{timeZone: "Asia/Singapore"});
+    logger.error('[Request from: ' + ip + ']\n[Timestamp: ' + timestamp + ']\n' + JSON.stringify(err) + '\n');
+};
 
 //----------------------------------------
 // Configurations for bodyParser
@@ -40,12 +62,12 @@ app.use(jsonParser); // Parse JSON data
 
 app.get('/users', function (req, res) {
     User.getUsers( function(err, result) {
-        if (err) {
-            console.log(result);
+        if (!err) {
+            actLog(req.ip, result);
             res.status(200).send(result);
         } else {
-            console.log(err)
-            res.status(500);
+            errLog(req.ip, err);
+            res.status(500).send("505: Internal Server Error!");
         };
     });
 });

@@ -15,10 +15,11 @@ const db = require("./databaseConfig.js");
 // Main Code Implementations
 //----------------------------------------
 let User = {
-    getUsers: function (callback) {
+    getUsers: function (callback) { 
         var conn = db.getConnection();
         conn.connect(function (err) {
             if (err) {
+                console.log(err);
                 return callback(err,null);
             }
             else {
