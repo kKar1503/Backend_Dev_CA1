@@ -35,20 +35,47 @@ app.use(jsonParser); // Parse JSON data
 //----------------------------------------
 // Endpoints
 //----------------------------------------
+//----------------------------------------
+// Start of User Endpoints
 
-// For User db
+app.get('/users', function (req, res) {
+    User.getUsers( function(err, result) {
+        if (err) {
+            console.log(result);
+            res.status(200).send(result);
+        } else {
+            console.log(err)
+            res.status(500);
+        };
+    });
+});
+
+// End of User Endpoints
+//----------------------------------------
+//----------------------------------------
+// Start of Category Endpoints
 
 
-// For Category db
+// End of Category Endpoints
+//----------------------------------------
+//----------------------------------------
+// Start of Product Endpoints
 
 
-// For Product db
+// End of Product Endpoints
+//----------------------------------------
+//----------------------------------------
+// Start of Review Endpoints
 
 
-// For Review db
+// End of Review Endpoints
+//----------------------------------------
+//----------------------------------------
+// Start of Interest Endpoints
 
 
-// For Interest db
+// End of Interest Endpoints
+//----------------------------------------
 
 
 
