@@ -223,6 +223,21 @@ app.post('/category', function (req, res) {
 //----------------------------------------
 // Start of Interest Endpoints
 
+// POST New Interest
+// http://localhost:3000/interest/:userid
+app.post('/interest/:userID', function (req, res) {
+    let uid = parseInt(req.params.userID);
+    let int = req.body.categoryids;
+    Interest.add(uid, int, function(err, result) {
+        if (!err) {
+            actLog(req, result, "POST Interest");
+            res.status(201).end();
+        } else {
+            errLog(req, err, "POST Interest");
+            res.status(500).end(); // Unknown error
+        };
+    });
+});
 
 // End of Interest Endpoints
 //----------------------------------------

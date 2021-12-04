@@ -15,7 +15,7 @@ const db = require("./databaseConfig.js");
 // Main Code Implementations
 //----------------------------------------
 let Category = {
-    getCats: function (callback) { 
+    get: function (callback) { 
         var conn = db.getConnection();
         conn.connect(function (err) {
             if (err) {
@@ -34,7 +34,7 @@ let Category = {
             };
         });
     },
-    addCat: function(cat, callback) {
+    add: function(cat, callback) {
         var conn = db.getConnection();
         conn.connect(function (err) {
             if (err) {
@@ -53,7 +53,7 @@ let Category = {
                         return callback(error, null);              
                     } else {
                         return callback(null, result);
-                    }
+                    };
                 });
             };
         });
