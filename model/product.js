@@ -37,7 +37,38 @@ let Product = {
             });
           }
         });
-      },
+    },
+
+    findByID: function (productID, callback) {
+        var dbConn = db.getConnection();
+        dbConn.connect(function (err) {
+    
+          if (err) {
+            return callback(err, null); // db connection err
+          } else {
+            const sql =
+              `
+                SELECT 
+                    name,
+                    p.description,
+                    p.categoryid,
+                    category AS categoryname,
+                    brand,
+                    price
+                FROM 
+                    product AS p, category AS c
+                WHERE productid = ? AND p.categoryid = c.categoryid
+              `;
+            dbConn.query(sql, productID, (error, result) => {
+              dbConn.end();
+              if (error) {
+                return callback(error, null);
+              }
+              return callback(null, result[0]);
+            });
+          }
+        });
+    },
 }
 
 //----------------------------------------

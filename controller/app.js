@@ -226,6 +226,21 @@ app.post("/product", function (req, res) {
     });
 });
 
+// Find the product by product ID
+// http://localhost:3000/product/3
+app.get("/product/:productID", function (req, res) {
+    const productID = parseInt(req.params.productID);
+    Product.findByID(productID, function (error, result) {
+      if (error) {
+        errLog(req, error, "Cannot find product by id!");
+        res.status(500).send();
+        return;
+      }
+      actLog(req, result, "Product is found!");
+      res.status(200).send(`Info of the matching product (including category name):\n ${JSON.stringify(result)}`);
+    });
+});
+
 // End of Product Endpoints
 //----------------------------------------
 //----------------------------------------
