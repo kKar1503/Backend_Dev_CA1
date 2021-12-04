@@ -76,7 +76,7 @@ app.use(jsonParser); // Parse JSON data
 //----------------------------------------
 //----------------------------------------
 // Start of User Endpoints
-// Add User
+// POST New User
 // http://localhost:3000/users
 app.post("/users", function (req, res) {
     let data = {
@@ -111,13 +111,13 @@ app.post("/users", function (req, res) {
 // GET all the users
 // http://localhost:3000/users
 app.get('/users', function (req, res) {
-    User.getUsers( function(err, result) {
+    User.getUsers(function(err, result) {
         if (!err) {
             actLog(req, result);
             res.status(200).send(result);
         } else {
             errLog(req, err);
-            res.status(500).send("505: Internal Server Error!");
+            res.status(500).send("500: Internal Server Error!");
         };
     });
 });
@@ -126,7 +126,37 @@ app.get('/users', function (req, res) {
 //----------------------------------------
 //----------------------------------------
 // Start of Category Endpoints
+// GET all the category
+// http://localhost:3000/category
+app.get('/category', function (req, res) {
+    Category.getCats(function(err, result) {
+        if (!err) {
+            actLog(req, result);
+            res.status(200).send(result);
+        } else {
+            errLog(req, err);
+            res.status(500).send("500: Internal Server Error!");
+        };
+    });
+});
 
+// POST New Category
+// http://localhost:3000/category
+app.get('/category', function (req, res) {
+    let cat = {
+        category: req.body.category, 
+        description: req.body.description
+    }
+    Category.addCat(cat, function(err, result) {
+        if (!err) {
+            actLog(req, result);
+            res.status(200).send(result);
+        } else {
+            errLog(req, err);
+            res.status(500).send("500: Internal Server Error!");
+        };
+    });
+});
 
 // End of Category Endpoints
 //----------------------------------------
