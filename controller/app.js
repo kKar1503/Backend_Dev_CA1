@@ -57,6 +57,8 @@ function errLog(req, err, note = "") {  // Creates a log files for error logging
         err = "Empty request body was passed into non-GET HTTP request."
     } else if (err.errno == 1048) {
         err = "Null value was passed into a Not Null column."
+    } else if (err.errno == 1062) {
+        err = "Duplicated entry."
     };
     logger.error(`[Request from: ${req.ip}]\n[Timestamp: ${timestamp}]\nRequest Type: ${req.method}\nRequest Made: ${JSON.stringify(req.body)}\nOutput: ${note}\n${JSON.stringify(err)}\n`);};
 
@@ -119,7 +121,7 @@ app.get('/users', function (req, res) {
             res.status(200).send(result);
         } else {
             errLog(req, err);
-            res.status(500).send("500: Internal Server Error!");
+            res.status(500).end();
         };
     });
 });
@@ -137,7 +139,7 @@ app.get("/users/:userID", function (req, res) {
     User.findByID(uid, function(err, result) {
         if(err) {
             errLog(req, err);
-            res.status(500).send("Internal Server Error");
+            res.status(500).end();
         }
         else {
             if(result) {
@@ -164,14 +166,14 @@ app.get('/category', function (req, res) {
             res.status(200).send(result);
         } else {
             errLog(req, err);
-            res.status(500).send("500: Internal Server Error!");
+            res.status(500).end();
         };
     });
 });
 
 // POST New Category
 // http://localhost:3000/category
-app.get('/category', function (req, res) {
+app.post('/category', function (req, res) {
     let cat = {
         category: req.body.category, 
         description: req.body.description
@@ -179,10 +181,14 @@ app.get('/category', function (req, res) {
     Category.addCat(cat, function(err, result) {
         if (!err) {
             actLog(req, result, "New Category Posted");
-            res.status(200).send(result);
+            res.status(204).end();
         } else {
-            errLog(req, err);
-            res.status(500).send("500: Internal Server Error!");
+            errLog(req, err, "Category POST");
+            if (err.errno == 1062) {
+                res.status(422).end();
+            } else {
+                res.status(500).end();
+            };
         };
     });
 });

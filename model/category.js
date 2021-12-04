@@ -43,7 +43,7 @@ let Category = {
                 console.log("Connection established!");
                 const sql = `
                            INSERT INTO
-                                user (category, description)
+                                category(category, description)
                            VALUES
                                 (?, ?) 
                            `;
