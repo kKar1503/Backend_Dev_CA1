@@ -98,12 +98,12 @@ app.post("/users", function (req, res) {
             }
         } else {
             actLog(req, result);
-            if(result.affectedRows == 1) {
+            // if(result.affectedRows == 1) {
                 res.status(201).send(`ID of the newly created user:
                 {"userid": ${result.insertId}}`);
-            } else {
-                res.status(200).send("Unable to add user!");
-            }
+            // } else {
+            //     res.status(304).send("Unable to add user!");
+            // }
         }
     });
 })
@@ -121,6 +121,33 @@ app.get('/users', function (req, res) {
         };
     });
 });
+
+// Find User by ID
+// http://localhost:3000/users/3
+app.get("/users/:userID", function (req, res) {
+    let uid = parseInt(req.params.userID);
+    
+    if(isNaN(uid)) {
+        res.status(400).send("Invalid user ID!");
+        return;
+    }
+    console.log(`User ID: ${uid}`); 
+    User.findByID(uid, function(err, result) {
+        if(err) {
+            errLog(req, err);
+            res.status(500).send("Internal Server Error");
+        }
+        else {
+            if(result) {
+                actLog(req, result);
+                res.status(200).type('json').send(result);
+            }else {
+                actLog(req, result);
+                res.status(404).send("No such user ID!");
+            }
+        }
+    });
+})
 
 // End of User Endpoints
 //----------------------------------------

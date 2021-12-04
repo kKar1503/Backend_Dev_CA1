@@ -77,6 +77,29 @@ let User = {
             };
         });
     },
+
+    findByID: function(userID, callback) {
+        var dbConn = db.getConnection();
+        dbConn.connect(function (err) {
+            if (err) {
+                return callback(err, null);
+            } else {
+                const sql = "SELECT userid, username, email, contact, type, profile_pic_url, created_at FROM user WHERE userid = ?";;
+                dbConn.query(sql, [userID], (error, results) => {
+                    dbConn.end();
+                    if (error) {
+                        return callback(error, null);              
+                    };
+                    // no record
+                    if(results.length == 0) {
+                        return callback(null, null);
+                    }else {
+                        return callback(null, results[0]); // only return the result not whole array
+                    }
+                });
+            }
+        });
+    },
 }
 
 //----------------------------------------
