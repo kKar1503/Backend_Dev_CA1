@@ -170,6 +170,7 @@ app.put("/users/:userID", function (req, res) {
 //----------------------------------------
 //----------------------------------------
 // Start of Category Endpoints
+
 // GET all the category
 // http://localhost:3000/category
 app.get('/category', function (req, res) {
@@ -211,6 +212,19 @@ app.post('/category', function (req, res) {
 //----------------------------------------
 // Start of Product Endpoints
 
+// Add new product to db
+// http://localhost:3000/product
+app.post("/product", function (req, res) {
+    Product.insert(req.body, function (error, result) {
+      if (error) {
+        errLog(req, error, "Cannot add new product");
+        res.status(500).send(); // Unknown error
+        return;
+      }
+      actLog(req, result, "New product added");
+      res.status(201).send(`ID of the newly created listing: \n{\n"productid": ${result.insertId}\n}`);
+    });
+});
 
 // End of Product Endpoints
 //----------------------------------------
