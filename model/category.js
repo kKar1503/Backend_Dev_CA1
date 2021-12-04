@@ -19,7 +19,6 @@ let Category = {
         var conn = db.getConnection();
         conn.connect(function (err) {
             if (err) {
-                console.log(err);
                 return callback(err,null);
             } else {
                 console.log("Connection established!");
@@ -39,7 +38,6 @@ let Category = {
         var conn = db.getConnection();
         conn.connect(function (err) {
             if (err) {
-                console.log(err);
                 return callback(err, null);
             } else {
                 console.log("Connection established!");

@@ -35,20 +35,22 @@ const logger = new Console({ // Create a new console object to handle stdout (lo
  * The `actLog` function generates a log of the request and response made if the request was sucessful.
  * @param {object} req Request object from the Express framework
  * @param {object} result Result from the MySQL query
+ * @param {string} note Note(s) to be added in the log
  * @returns log statements in the Activity_Log.txt
  */
-function actLog(req, result) { // Creates a log files for general logging
+function actLog(req, result, note = "") { // Creates a log files for general logging
     timestamp = new Date().toLocaleString('en-US',{timeZone: 'Asia/Singapore'});
-    logger.log(`[Request from: ${req.ip}]\n[Timestamp: ${timestamp}]\nRequest Type: ${req.method}\nRequest Made: ${JSON.stringify(req.body)}\nOutput:\n${JSON.stringify(result)}\n`);
+    logger.log(`[Request from: ${req.ip}]\n[Timestamp: ${timestamp}]\nRequest Type: ${req.method}\nRequest Made: ${JSON.stringify(req.body)}\nOutput: ${note}\n${JSON.stringify(result)}\n`);
 };
 
 /**
  * The `errLog` function generates a error log of the request and response made if the request was unsucessful.
  * @param {object} req Request object from the Express framework
  * @param {object} err Error generated from connection to server
+ * @param {string} note Note(s) to be added in the log
  * @returns log statements in the Error_Log.txt
  */
-function errLog(req, err) {  // Creates a log files for error logging
+function errLog(req, err, note = "") {  // Creates a log files for error logging
     timestamp = new Date().toLocaleString('en-US',{timeZone: 'Asia/Singapore'});
     // Error handling for error logging
     if (JSON.stringify(req.body) == '{}' && req.method != 'GET') {
@@ -56,7 +58,7 @@ function errLog(req, err) {  // Creates a log files for error logging
     } else if (err.errno == 1048) {
         err = "Null value was passed into a Not Null column."
     };
-    logger.error(`[Request from: ${req.ip}]\n[Timestamp: ${timestamp}]\nRequest Type: ${req.method}\nRequest Made: ${JSON.stringify(req.body)}\nOutput:\n${JSON.stringify(err)}\n`);};
+    logger.error(`[Request from: ${req.ip}]\n[Timestamp: ${timestamp}]\nRequest Type: ${req.method}\nRequest Made: ${JSON.stringify(req.body)}\nOutput: ${note}\n${JSON.stringify(err)}\n`);};
 
 //----------------------------------------
 // Configurations for bodyParser
@@ -176,7 +178,7 @@ app.get('/category', function (req, res) {
     }
     Category.addCat(cat, function(err, result) {
         if (!err) {
-            actLog(req, result);
+            actLog(req, result, "New Category Posted");
             res.status(200).send(result);
         } else {
             errLog(req, err);
