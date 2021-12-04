@@ -26,19 +26,19 @@ let Interest = {
                 // Handles duplicate values from request body
                 let dltQueryStr = "";
                 let dltQueryVal = [];
-                const dltQuery = "DELETE FROM interest WHERE (fk_user_id = ? AND fk_category_id = ?)\n";
+                const dltQuery = "DELETE FROM interest WHERE (fk_user_id = ? AND fk_category_id = ?);\n";
                 for (let i = 0; i < catArr.length; i++) {
                     dltQueryStr += dltQuery;
-                    dltQueryVal.push(uid, catArr[i]);
+                    dltQueryVal.push(uid, parseInt(catArr[i],10));
                 };
                 //----------------------------------------------
                 // Duplicate queries to match request body
                 let queryStr = "";
                 let queryVal = [];
-                const query = `INSERT INTO interest (fk_user_id, fk_category_id) VALUES (?, ?)\n`;
+                const query = `INSERT INTO interest (fk_user_id, fk_category_id) VALUES (?, ?);\n`;
                 for (let i = 0; i < catArr.length; i++) {
                     queryStr += query;
-                    queryVal.push(uid, catArr[i]);
+                    queryVal.push(uid, parseInt(catArr[i],10));
                 };
                 //----------------------------------------------
                 sql = dltQueryStr + queryStr
@@ -54,7 +54,7 @@ let Interest = {
             };
         });
     }
-}
+};
 
 //----------------------------------------
 // Module Export
