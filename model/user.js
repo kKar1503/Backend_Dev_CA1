@@ -15,6 +15,47 @@ const db = require("./databaseConfig.js");
 // Main Code Implementations
 //----------------------------------------
 let User = {
+    insert: function(user, callback) {
+        var dbConn = db.getConnection();
+
+        dbConn.connect(function (err) {
+            if (err) {
+                console.log(err);
+                return callback(err, null);
+            } 
+
+            else {
+                const sql = `
+                           INSERT INTO
+                                user (username, email, contact, password, type, profile_pic_url)
+                           VALUES
+                                (?, ?, ?, ?, ?, ?) 
+                           `;
+
+                dbConn.query(sql, [user.d_username, user.d_email, user.d_contact, user.d_pass, user.d_type, user.d_picUrl], (error, q_result) => {
+                    dbConn.end();
+
+                    if (error) {
+                        console.log("query error");
+                        return callback(error, null);              
+                    };
+                    
+                    return callback(null, q_result);
+                    
+                    /*
+                        q_result: {
+                            affectedRows: 1,
+                            ...,
+                            insertId: 5,
+                            ...,
+                        }
+                    */
+                    
+                });
+            }
+        });
+   },
+
     getUsers: function (callback) { 
         var conn = db.getConnection();
         conn.connect(function (err) {

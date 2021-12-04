@@ -59,7 +59,43 @@ app.use(jsonParser); // Parse JSON data
 //----------------------------------------
 //----------------------------------------
 // Start of User Endpoints
+// Add User
+// http://localhost:3000/users
+app.post("/users", function (req, res) {
+    let data = {
+        "d_username": req.body.username, // must match the postman json body
+        "d_email": req.body.email,
+        "d_contact": req.body.contact,
+        "d_pass": req.body.password,
+        "d_type": req.body.type,
+        "d_picUrl" : req.body.profile_pic_url
+    }
 
+    User.insert(data, function(err, result) {
+        if(err) {
+            errLog(req.ip, err);
+            if(err.code == "ER_DUP_ENTRY") {
+                res.status(422).type("json").send('Unprocessable Entity').end();
+            } else {
+                res.status(500).type("json").send('Internal Server Error').end();
+            }
+        }
+
+        else {
+            actLog(req.ip, result);
+            if(result.affectedRows == 1) {
+                res.status(201).send(`ID of the newly created user:
+                {"userid": ${result.insertId}}`).end();
+            }
+            else {
+                res.status(200).send("Unable to add user!").end();
+            }
+        }
+    });
+})
+
+// Get all the users
+// http://localhost:3000/users
 app.get('/users', function (req, res) {
     User.getUsers( function(err, result) {
         if (!err) {
