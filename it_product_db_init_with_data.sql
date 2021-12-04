@@ -55,6 +55,7 @@ CREATE TABLE `interest` (
   `fk_user_id` int NOT NULL,
   `fk_category_id` int NOT NULL,
   PRIMARY KEY (`interestid`),
+  UNIQUE KEY (`fk_user_id`, `fk_category_id`),
   KEY `fk_user_id_idx` (`fk_user_id`),
   KEY `fk_category_id_idx` (`fk_category_id`),
   CONSTRAINT `fk_category_id` FOREIGN KEY (`fk_category_id`) REFERENCES `category` (`categoryid`) ON DELETE CASCADE ON UPDATE CASCADE,
