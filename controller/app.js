@@ -33,23 +33,30 @@ const logger = new Console({ // Create a new console object to handle stdout (lo
 
 /**
  * The `actLog` function generates a log of the request and response made if the request was sucessful.
- * @param {object} req 
- * @param {object} result
+ * @param {object} req Request object from the Express framework
+ * @param {object} result Result from the MySQL query
+ * @returns log statements in the Activity_Log.txt
  */
 function actLog(req, result) { // Creates a log files for general logging
-    timestamp = new Date().toLocaleString("en-US",{timeZone: "Asia/Singapore"});
-    logger.log(`[Request from: ${req.ip}]\n[Timestamp: ${timestamp}]\nRequest Made: ${req}\nOutput: ${typeof result}\n${JSON.stringify(result)}\n`);
+    timestamp = new Date().toLocaleString('en-US',{timeZone: 'Asia/Singapore'});
+    logger.log(`[Request from: ${req.ip}]\n[Timestamp: ${timestamp}]\nRequest Type: ${req.method}\nRequest Made: ${JSON.stringify(req.body)}\nOutput:\n${JSON.stringify(result)}\n`);
 };
 
 /**
  * The `errLog` function generates a error log of the request and response made if the request was unsucessful.
- * @param {object} req 
- * @param {object} err 
+ * @param {object} req Request object from the Express framework
+ * @param {object} err Error generated from connection to server
+ * @returns log statements in the Error_Log.txt
  */
 function errLog(req, err) {  // Creates a log files for error logging
-    timestamp = new Date().toLocaleString("en-US",{timeZone: "Asia/Singapore"});
-    logger.error(`[Request from: ${req.ip}]\n[Timestamp: ${timestamp}]\nRequest Made: ${req}\nOutput: ${typeof err}\n${JSON.stringify(err)}\n`);
-};
+    timestamp = new Date().toLocaleString('en-US',{timeZone: 'Asia/Singapore'});
+    // Error handling for error logging
+    if (JSON.stringify(req.body) == '{}' && req.method != 'GET') {
+        err = "Empty request body was passed into non-GET HTTP request."
+    } else if (err.errno == 1048) {
+        err = "Null value was passed into a Not Null column."
+    };
+    logger.error(`[Request from: ${req.ip}]\n[Timestamp: ${timestamp}]\nRequest Type: ${req.method}\nRequest Made: ${JSON.stringify(req.body)}\nOutput:\n${JSON.stringify(err)}\n`);};
 
 //----------------------------------------
 // Configurations for bodyParser
@@ -85,26 +92,23 @@ app.post("/users", function (req, res) {
         if(err) {
             errLog(req, err);
             if(err.code == "ER_DUP_ENTRY") {
-                res.status(422).type("json").send('Unprocessable Entity').end();
+                res.status(422).type("json").send('Unprocessable Entity');
             } else {
-                res.status(500).type("json").send('Internal Server Error').end();
+                res.status(500).type("json").send('Internal Server Error');
             }
-        }
-
-        else {
+        } else {
             actLog(req, result);
             if(result.affectedRows == 1) {
                 res.status(201).send(`ID of the newly created user:
-                {"userid": ${result.insertId}}`).end();
-            }
-            else {
-                res.status(200).send("Unable to add user!").end();
+                {"userid": ${result.insertId}}`);
+            } else {
+                res.status(200).send("Unable to add user!");
             }
         }
     });
 })
 
-// Get all the users
+// GET all the users
 // http://localhost:3000/users
 app.get('/users', function (req, res) {
     User.getUsers( function(err, result) {
