@@ -69,6 +69,30 @@ let Product = {
           }
         });
     },
+
+    delete: function (productID, callback) {
+        var dbConn = db.getConnection();
+        dbConn.connect(function (err) {
+    
+          if (err) {//database connection gt issue!
+            console.log(err);
+            return callback(err, null);
+          }else {
+            const sql =
+              `
+                DELETE FROM product
+                WHERE productid = ?
+              `;
+            dbConn.query(sql, productID, (error, result) => {
+              dbConn.end();
+              if (error) {
+                return callback(error,null);
+              };
+              return callback(null,result);
+            });
+          }
+        });
+    },
 }
 
 //----------------------------------------

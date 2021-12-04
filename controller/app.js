@@ -241,6 +241,22 @@ app.get("/product/:productID", function (req, res) {
     });
 });
 
+
+// Delete the product by product ID
+// http://localhost:3000/product/1 
+app.delete("/product/:productID", function (req, res) {
+    const productID = parseInt(req.params.productID);
+
+    Product.delete(productID, (error, result) => {
+        if (error) {
+            errLog(req, error, "Cannot delete product");
+            res.status(500).send(); // Unknown error
+            return;
+        }
+        actLog(req, result, "Product deleted!");
+        res.status(204).send(`N/A`);
+    });
+});
 // End of Product Endpoints
 //----------------------------------------
 //----------------------------------------
