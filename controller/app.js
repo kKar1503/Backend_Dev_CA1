@@ -83,7 +83,7 @@ app.post("/users", function (req, res) {
 
     User.insert(data, function(err, result) {
         if(err) {
-            errLog(req.ip, err);
+            errLog(req, err);
             if(err.code == "ER_DUP_ENTRY") {
                 res.status(422).type("json").send('Unprocessable Entity').end();
             } else {
@@ -92,7 +92,7 @@ app.post("/users", function (req, res) {
         }
 
         else {
-            actLog(req.ip, result);
+            actLog(req, result);
             if(result.affectedRows == 1) {
                 res.status(201).send(`ID of the newly created user:
                 {"userid": ${result.insertId}}`).end();
@@ -109,11 +109,10 @@ app.post("/users", function (req, res) {
 app.get('/users', function (req, res) {
     User.getUsers( function(err, result) {
         if (!err) {
-            console.log(typeof req)
-            actLog(req.ip, result);
+            actLog(req, result);
             res.status(200).send(result);
         } else {
-            errLog(req.ip, err);
+            errLog(req, err);
             res.status(500).send("505: Internal Server Error!");
         };
     });
