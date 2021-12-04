@@ -262,6 +262,29 @@ app.delete("/product/:productID", function (req, res) {
 //----------------------------------------
 // Start of Review Endpoints
 
+// Add New review
+// http://localhost:3000/product/:id/review
+app.post("/product/:productID/review", function (req, res) {
+    const productID = parseInt(req.params.productID);
+
+    let data = {
+        "userid": req.body.userid, // must match the postman json body
+        "rating": req.body.rating,
+        "review": req.body.review,
+        "productID" : productID
+    }
+
+    Review.insert(data, function(err, result) {
+        if(err) {
+            errLog(req, err, "Review cannot add!");
+            res.status(500).send(); // Unknown error
+        } else {
+            actLog(req, result, "Review added successfully!");
+                res.status(201).send(`ID of the newly created listing:
+                {"reviewid": ${result.insertId}}`);
+        }
+    });
+})
 
 // End of Review Endpoints
 //----------------------------------------
