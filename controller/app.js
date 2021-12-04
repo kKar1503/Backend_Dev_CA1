@@ -80,6 +80,7 @@ app.use(jsonParser); // Parse JSON data
 //----------------------------------------
 //----------------------------------------
 // Start of User Endpoints
+
 // POST New User
 // http://localhost:3000/users
 app.post("/users", function (req, res) {
@@ -96,9 +97,9 @@ app.post("/users", function (req, res) {
         if(err) {
             errLog(req, err);
             if(err.errno == 1062) {
-                res.status(422).type("json").send('Unprocessable Entity');
+                res.status(422).send(); // The new username OR new email provided already exists.
             } else {
-                res.status(500).type("json").send('Internal Server Error');
+                res.status(500).send(); // Unknown error
             }
         } else {
             actLog(req, result);
@@ -127,24 +128,41 @@ app.get('/users', function (req, res) {
 app.get("/users/:userID", function (req, res) {
     let uid = parseInt(req.params.userID);
     
-    if(isNaN(uid)) {
-        res.status(400).send("Invalid user ID!");
-        return;
-    }
-    console.log(`User ID: ${uid}`); 
     User.findByID(uid, function(err, result) {
         if(err) {
             errLog(req, err);
-            res.status(500).end();
+            res.status(500).end(); // Unknown error
+        }else {
+            actLog(req, result);
+            res.status(200).type('json').send(result);
         }
-        else {
-            if(result) {
-                actLog(req, result);
-                res.status(200).type('json').send(result);
-            }else {
-                actLog(req, result);
-                res.status(404).send("No such user ID!");
+    });
+})
+
+// Update User
+// http://localhost:3000/users/6
+app.put("/users/:userID", function (req, res) {
+    let uid = parseInt(req.params.userID);
+    let data = {
+        "username": req.body.username, // must match the postman json body
+        "email": req.body.email,
+        "contact": req.body.contact,
+        "pass": req.body.password,
+        "type": req.body.type,
+        "picUrl" : req.body.profile_pic_url
+    }
+
+    User.edit(uid, data, function(err, result) {
+        if(err) {
+            errLog(req, err);
+            if(err.errno == 1062) {
+                res.status(422).send(); // The new username OR new email provided already exists.
+            } else {
+                res.status(500).send(); // Unknown error
             }
+        }else {
+            actLog(req, result, "User is updated!");
+            res.status(204).send("N/A");
         }
     });
 })
