@@ -84,30 +84,26 @@ app.use(jsonParser); // Parse JSON data
 // http://localhost:3000/users
 app.post("/users", function (req, res) {
     let data = {
-        "d_username": req.body.username, // must match the postman json body
-        "d_email": req.body.email,
-        "d_contact": req.body.contact,
-        "d_pass": req.body.password,
-        "d_type": req.body.type,
-        "d_picUrl" : req.body.profile_pic_url
+        "username": req.body.username, // must match the postman json body
+        "email": req.body.email,
+        "contact": req.body.contact,
+        "pass": req.body.password,
+        "type": req.body.type,
+        "picUrl" : req.body.profile_pic_url
     }
 
     User.insert(data, function(err, result) {
         if(err) {
             errLog(req, err);
-            if(err.code == "ER_DUP_ENTRY") {
+            if(err.errno == 1062) {
                 res.status(422).type("json").send('Unprocessable Entity');
             } else {
                 res.status(500).type("json").send('Internal Server Error');
             }
         } else {
             actLog(req, result);
-            // if(result.affectedRows == 1) {
                 res.status(201).send(`ID of the newly created user:
                 {"userid": ${result.insertId}}`);
-            // } else {
-            //     res.status(304).send("Unable to add user!");
-            // }
         }
     });
 })
@@ -152,7 +148,6 @@ app.get("/users/:userID", function (req, res) {
         }
     });
 })
-
 // End of User Endpoints
 //----------------------------------------
 //----------------------------------------
@@ -162,11 +157,11 @@ app.get("/users/:userID", function (req, res) {
 app.get('/category', function (req, res) {
     Category.getCats(function(err, result) {
         if (!err) {
-            actLog(req, result);
+            actLog(req, result, "GET Category");
             res.status(200).send(result);
         } else {
-            errLog(req, err);
-            res.status(500).end();
+            errLog(req, err, "GET Category");
+            res.status(500).end(); // Unknown error
         };
     });
 });
@@ -180,14 +175,14 @@ app.post('/category', function (req, res) {
     }
     Category.addCat(cat, function(err, result) {
         if (!err) {
-            actLog(req, result, "New Category Posted");
+            actLog(req, result, "POST Category");
             res.status(204).end();
         } else {
-            errLog(req, err, "Category POST");
+            errLog(req, err, "POST Category");
             if (err.errno == 1062) {
-                res.status(422).end();
+                res.status(422).end(); // The category name provided already exists.
             } else {
-                res.status(500).end();
+                res.status(500).end(); // Unknown error
             };
         };
     });
