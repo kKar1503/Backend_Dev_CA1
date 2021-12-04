@@ -23,8 +23,27 @@ let Interest = {
             } else {
                 console.log("Connection established!");
                 let catArr = int.split(','); // Returns array of all categoryid as an array.
-                const dltQuery = `DELETE FROM interest WHERE`;
-                conn.query(sql, [cat.category, cat.description], (error, result) => {
+                // Handles duplicate values from request body
+                let dltQueryStr = "";
+                let dltQueryVal = [];
+                const dltQuery = "DELETE FROM interest WHERE (fk_user_id = ? AND fk_category_id = ?);\n";
+                for (let i = 0; i < catArr.length; i++) {
+                    dltQueryStr += dltQuery;
+                    dltQueryVal.push(uid, parseInt(catArr[i],10));
+                };
+                //----------------------------------------------
+                // Duplicate queries to match request body
+                let queryStr = "";
+                let queryVal = [];
+                const query = `INSERT INTO interest (fk_user_id, fk_category_id) VALUES (?, ?);\n`;
+                for (let i = 0; i < catArr.length; i++) {
+                    queryStr += query;
+                    queryVal.push(uid, parseInt(catArr[i],10));
+                };
+                //----------------------------------------------
+                sql = dltQueryStr + queryStr
+                queryArray = dltQueryVal.concat(queryVal)
+                conn.query(sql, queryArray, (error, result) => {
                     conn.end();
                     if (error) {
                         return callback(error, null);              
@@ -35,7 +54,7 @@ let Interest = {
             };
         });
     }
-}
+};
 
 //----------------------------------------
 // Module Export

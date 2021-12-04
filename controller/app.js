@@ -299,7 +299,7 @@ app.post('/interest/:userID', function (req, res) {
     Interest.add(uid, int, function(err, result) {
         if (!err) {
             actLog(req, result, "POST Interest");
-            res.status(201).end();
+            res.status(201).end(); // Created
         } else {
             errLog(req, err, "POST Interest");
             res.status(500).end(); // Unknown error
