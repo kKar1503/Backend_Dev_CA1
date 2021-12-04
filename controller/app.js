@@ -31,14 +31,24 @@ const logger = new Console({ // Create a new console object to handle stdout (lo
     stderr: fs.createWriteStream('Error_Log.txt', {flags: 'a'})
 });
 
-function actLog(ip, activity) { // Creates a log files for general logging
+/**
+ * The `actLog` function generates a log of the request and response made if the request was sucessful.
+ * @param {object} req 
+ * @param {object} result
+ */
+function actLog(req, result) { // Creates a log files for general logging
     timestamp = new Date().toLocaleString("en-US",{timeZone: "Asia/Singapore"});
-    logger.log('[Request from: ' + ip + ']\n[Timestamp: ' + timestamp + ']\n' + JSON.stringify(activity) + '\n');
+    logger.log(`[Request from: ${req.ip}]\n[Timestamp: ${timestamp}]\nRequest Made: ${req}\nOutput: ${typeof result}\n${JSON.stringify(result)}\n`);
 };
 
-function errLog(ip, err) {  // Creates a log files for error logging
+/**
+ * The `errLog` function generates a error log of the request and response made if the request was unsucessful.
+ * @param {object} req 
+ * @param {object} err 
+ */
+function errLog(req, err) {  // Creates a log files for error logging
     timestamp = new Date().toLocaleString("en-US",{timeZone: "Asia/Singapore"});
-    logger.error('[Request from: ' + ip + ']\n[Timestamp: ' + timestamp + ']\n' + JSON.stringify(err) + '\n');
+    logger.error(`[Request from: ${req.ip}]\n[Timestamp: ${timestamp}]\nRequest Made: ${req}\nOutput: ${typeof err}\n${JSON.stringify(err)}\n`);
 };
 
 //----------------------------------------
@@ -99,6 +109,7 @@ app.post("/users", function (req, res) {
 app.get('/users', function (req, res) {
     User.getUsers( function(err, result) {
         if (!err) {
+            console.log(typeof req)
             actLog(req.ip, result);
             res.status(200).send(result);
         } else {
