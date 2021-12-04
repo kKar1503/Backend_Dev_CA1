@@ -51,15 +51,9 @@ DROP TABLE IF EXISTS `interest`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `interest` (
-  `interestid` int NOT NULL AUTO_INCREMENT,
-  `fk_user_id` int NOT NULL,
-  `fk_category_id` int NOT NULL,
-  PRIMARY KEY (`interestid`),
-  UNIQUE KEY (`fk_user_id`, `fk_category_id`),
-  KEY `fk_user_id_idx` (`fk_user_id`),
-  KEY `fk_category_id_idx` (`fk_category_id`),
-  CONSTRAINT `fk_category_id` FOREIGN KEY (`fk_category_id`) REFERENCES `category` (`categoryid`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_user_id` FOREIGN KEY (`fk_user_id`) REFERENCES `user` (`userid`) ON DELETE CASCADE ON UPDATE CASCADE
+  `fk_user_id` int NOT NULL FOREIGN KEY (`fk_user_id`) REFERENCES `user` (`userid`),
+  `fk_category_id` int NOT NULL FOREIGN KEY (`fk_category_id`) REFERENCES `category` (`categoryid`),
+  CONSTRAINT PK_user_category PRIMARY KEY CLUSTERED (fk_user_id ASC,fk_category_id ASC)
 ) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
