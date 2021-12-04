@@ -284,7 +284,22 @@ app.post("/product/:productID/review", function (req, res) {
                 {"reviewid": ${result.insertId}}`);
         }
     });
-})
+});
+
+// GET all the reviews of one particular product by product ID
+// http://localhost:3000/product/2/reviews
+app.get('/product/:productID/reviews', function (req, res) {
+    const productID = parseInt(req.params.productID);
+    Review.getReviews(productID,function(err, result) {
+        if (!err) {
+            actLog(req, result, "Reviews are retrieved!");
+            res.status(200).send(result);
+        } else {
+            errLog(req, err, "Cannot retrive reviews");
+            res.status(500).end();
+        };
+    });
+});
 
 // End of Review Endpoints
 //----------------------------------------

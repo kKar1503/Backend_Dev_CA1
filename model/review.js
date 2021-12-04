@@ -37,7 +37,34 @@ let Review = {
                 });
             }
         });
-   },
+    },
+
+    getReviews: function (productID, callback) { 
+        var conn = db.getConnection();
+        conn.connect(function (err) {
+            if (err) {
+                return callback(err,null);
+            }
+            else {
+                const sql = `
+                            SELECT 
+                                productid, r.userid, username, rating, review, r.created_at 
+                            FROM 
+                                review AS r, user AS u
+                            WHERE 
+                                productid = ? AND r.userid = u.userid
+                            `;
+                conn.query(sql, [productID], function (err, result) {
+                    conn.end();
+                    if (err) {
+                        return callback(err,null);
+                    } else {
+                        return callback(null, result);
+                    }
+                });
+            };
+        });
+    },
 
 }
 
