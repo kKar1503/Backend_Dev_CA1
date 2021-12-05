@@ -125,8 +125,8 @@ app.get('/users', function (req, res) {
 
 // Find User by ID
 // http://localhost:3000/users/3
-app.get("/users/:userID", function (req, res) {
-    let uid = parseInt(req.params.userID);
+app.get("/users/:id", function (req, res) {
+    let uid = parseInt(req.params.id);
     
     User.findByID(uid, function(err, result) {
         if(err) {
@@ -141,8 +141,8 @@ app.get("/users/:userID", function (req, res) {
 
 // Update User
 // http://localhost:3000/users/6
-app.put("/users/:userID", function (req, res) {
-    let uid = parseInt(req.params.userID);
+app.put("/users/:id", function (req, res) {
+    let uid = parseInt(req.params.id);
     let data = {
         "username": req.body.username, // must match the postman json body
         "email": req.body.email,
@@ -228,8 +228,8 @@ app.post("/product", function (req, res) {
 
 // Find the product by product ID
 // http://localhost:3000/product/3
-app.get("/product/:productID", function (req, res) {
-    const productID = parseInt(req.params.productID);
+app.get("/product/:id", function (req, res) {
+    const productID = parseInt(req.params.id);
     Product.findByID(productID, function (error, result) {
       if (error) {
         errLog(req, error, "Cannot find product by id!");
@@ -244,8 +244,8 @@ app.get("/product/:productID", function (req, res) {
 
 // Delete the product by product ID
 // http://localhost:3000/product/1 
-app.delete("/product/:productID", function (req, res) {
-    const productID = parseInt(req.params.productID);
+app.delete("/product/:id", function (req, res) {
+    const productID = parseInt(req.params.id);
 
     Product.delete(productID, (error, result) => {
         if (error) {
@@ -264,8 +264,8 @@ app.delete("/product/:productID", function (req, res) {
 
 // Add New review
 // http://localhost:3000/product/:id/review
-app.post("/product/:productID/review", function (req, res) {
-    const productID = parseInt(req.params.productID);
+app.post("/product/:id/review", function (req, res) {
+    const productID = parseInt(req.params.id);
 
     let data = {
         "userid": req.body.userid, // must match the postman json body
@@ -288,8 +288,8 @@ app.post("/product/:productID/review", function (req, res) {
 
 // GET all the reviews of one particular product by product ID
 // http://localhost:3000/product/2/reviews
-app.get('/product/:productID/reviews', function (req, res) {
-    const productID = parseInt(req.params.productID);
+app.get('/product/:id/reviews', function (req, res) {
+    const productID = parseInt(req.params.id);
     Review.getReviews(productID,function(err, result) {
         if (!err) {
             actLog(req, result, "Reviews are retrieved!");
