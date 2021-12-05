@@ -162,9 +162,14 @@ app.put("/users/:id", function (req, res) {
             } else {
                 res.status(500).send(); // Unknown error
             }
-        }else {
-            actLog(req, result, "User is updated!");
-            res.status(204).send();
+        } else {
+            if (result.changedRows == 0) {
+                res.status(500).end(); // No changes
+            } else {
+                actLog(req, result, "User is updated!");
+                res.status(204).send();
+            }
+            
         }
     });
 })
@@ -315,12 +320,12 @@ app.get('/product/:id/reviews', function (req, res) {
 // POST New Interest
 // http://localhost:3000/interest/:userid
 app.post('/interest/:userid', function (req, res) {
-    let uid = parseInt(req.params.userID);
+    let uid = parseInt(req.params.userid);
     let int = req.body.categoryids;
     Interest.add(uid, int, function(err, result) {
         if (!err) {
             actLog(req, result, "POST Interest");
-            res.status(201).send(`Nil`); // Created
+            res.status(201).end(); // Created
         } else {
             errLog(req, err, "POST Interest");
             res.status(500).end(); // Unknown error
@@ -336,8 +341,8 @@ app.post('/interest/:userid', function (req, res) {
 
 app.post('/upload', upload.single('productImage'), function(req, res) {
     console.log(req.file);
-    res.status(200).send('received')
-})
+    res.status(200).send('received');
+});
 
 // End of Interest Endpoints
 //----------------------------------------

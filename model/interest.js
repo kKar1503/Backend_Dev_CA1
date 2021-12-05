@@ -23,14 +23,14 @@ let Interest = {
             } else {
                 console.log("Connection established!");
                 let catArr = int.split(','); // Returns array of all categoryid as an array.
-                // Handles duplicate values from request body
-                let dltQueryStr = "";
-                let dltQueryVal = [];
-                const dltQuery = "DELETE FROM interest WHERE (fk_user_id = ? AND fk_category_id = ?);\n";
-                for (let i = 0; i < catArr.length; i++) {
-                    dltQueryStr += dltQuery;
-                    dltQueryVal.push(uid, parseInt(catArr[i],10));
-                };
+                // // Handles duplicate values from request body
+                // let dltQueryStr = "";
+                let dltQueryVal = [uid];
+                const dltQuery = "DELETE FROM interest WHERE fk_user_id = ?;\n";
+                // for (let i = 0; i < catArr.length; i++) {
+                //     dltQueryStr += dltQuery;
+                //     dltQueryVal.push(uid, parseInt(catArr[i],10));
+                // };
                 //----------------------------------------------
                 // Duplicate queries to match request body
                 let queryStr = "";
