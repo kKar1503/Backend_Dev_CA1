@@ -15,7 +15,7 @@ const db = require("./databaseConfig.js");
 // Main Code Implementations
 //----------------------------------------
 let Category = {
-    get: function (callback) { 
+    getCats: function (callback) { 
         var conn = db.getConnection();
         conn.connect(function (err) {
             if (err) {
