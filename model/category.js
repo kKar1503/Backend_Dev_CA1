@@ -34,7 +34,8 @@ let Category = {
             };
         });
     },
-    add: function(cat, callback) {
+    
+    addCat: function(cat, callback) {
         var conn = db.getConnection();
         conn.connect(function (err) {
             if (err) {

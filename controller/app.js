@@ -162,7 +162,7 @@ app.put("/users/:userID", function (req, res) {
             }
         }else {
             actLog(req, result, "User is updated!");
-            res.status(204).send("N/A");
+            res.status(204).send();
         }
     });
 })
@@ -195,7 +195,7 @@ app.post('/category', function (req, res) {
     Category.addCat(cat, function(err, result) {
         if (!err) {
             actLog(req, result, "POST Category");
-            res.status(204).end();
+            res.status(204).send();
         } else {
             errLog(req, err, "POST Category");
             if (err.errno == 1062) {
@@ -254,7 +254,7 @@ app.delete("/product/:productID", function (req, res) {
             return;
         }
         actLog(req, result, "Product deleted!");
-        res.status(204).send(`N/A`);
+        res.status(204).send();
     });
 });
 // End of Product Endpoints
