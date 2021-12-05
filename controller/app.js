@@ -16,6 +16,8 @@ const { Console } = require('console'); // Import Console Module for generating 
 const fs = require('fs'); // Import File System Module
 
 const bodyParser = require('body-parser'); 
+const multer = require('multer');
+const upload = multer({dest: './uploads/'});
 const User = require("../model/user.js");
 const Category = require("../model/category.js");
 const Interest = require("../model/interest.js");
@@ -168,6 +170,7 @@ app.put("/users/:id", function (req, res) {
 })
 // End of User Endpoints
 //----------------------------------------
+
 //----------------------------------------
 // Start of Category Endpoints
 
@@ -209,6 +212,7 @@ app.post('/category', function (req, res) {
 
 // End of Category Endpoints
 //----------------------------------------
+
 //----------------------------------------
 // Start of Product Endpoints
 
@@ -259,6 +263,7 @@ app.delete("/product/:id", function (req, res) {
 });
 // End of Product Endpoints
 //----------------------------------------
+
 //----------------------------------------
 // Start of Review Endpoints
 
@@ -303,6 +308,7 @@ app.get('/product/:id/reviews', function (req, res) {
 
 // End of Review Endpoints
 //----------------------------------------
+
 //----------------------------------------
 // Start of Interest Endpoints
 
@@ -325,7 +331,16 @@ app.post('/interest/:userid', function (req, res) {
 // End of Interest Endpoints
 //----------------------------------------
 
+//----------------------------------------
+// Start of Interest Endpoints
 
+app.post('/upload', upload.single('productImage'), function(req, res) {
+    console.log(req.file);
+    res.status(200).send('received')
+})
+
+// End of Interest Endpoints
+//----------------------------------------
 
 //----------------------------------------
 // Module Exports

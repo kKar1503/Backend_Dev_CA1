@@ -12,3 +12,6 @@ node_modules
 
 # Ignore all CSV files from database
 *.csv
+
+# Ignore all uploaded files in ./uploads
+uploads/*
