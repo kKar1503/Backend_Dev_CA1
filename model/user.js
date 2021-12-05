@@ -48,7 +48,7 @@ let User = {
             }
             else {
                 console.log("Connection established!");
-                var sql = 'SELECT userid, username, email, contact, type, profile_pic_url, createat FROM user';
+                var sql = 'SELCT userid, username, email, contact, type, profile_pic_url, created_at FROM user';
                 conn.query(sql, function (err, result) {
                     conn.end();
                     if (err) {

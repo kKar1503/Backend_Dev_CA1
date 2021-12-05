@@ -308,13 +308,13 @@ app.get('/product/:productID/reviews', function (req, res) {
 
 // POST New Interest
 // http://localhost:3000/interest/:userid
-app.post('/interest/:userID', function (req, res) {
+app.post('/interest/:userid', function (req, res) {
     let uid = parseInt(req.params.userID);
     let int = req.body.categoryids;
     Interest.add(uid, int, function(err, result) {
         if (!err) {
             actLog(req, result, "POST Interest");
-            res.status(201).end(); // Created
+            res.status(201).send(`Nil`); // Created
         } else {
             errLog(req, err, "POST Interest");
             res.status(500).end(); // Unknown error
