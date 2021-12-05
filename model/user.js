@@ -73,7 +73,7 @@ let User = {
                     if (error) {
                         return callback(error, null);              
                     };
-                    return callback(null, result);
+                    return callback(null, result[0]);
                 });
             }
         });

@@ -41,7 +41,7 @@ let Interest = {
                     queryVal.push(uid, parseInt(catArr[i],10));
                 };
                 //----------------------------------------------
-                sql = dltQueryStr + queryStr
+                sql = dltQuery + queryStr
                 queryArray = dltQueryVal.concat(queryVal)
                 conn.query(sql, queryArray, (error, result) => {
                     conn.end();

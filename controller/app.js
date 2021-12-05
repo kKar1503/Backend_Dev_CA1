@@ -57,6 +57,8 @@ function errLog(req, err, note = "") {  // Creates a log files for error logging
     // Error handling for error logging
     if (JSON.stringify(req.body) == '{}' && req.method != 'GET') {
         err = "Empty request body was passed into non-GET HTTP request."
+    } else if (err == null) {
+        err = "Non SQL Error."
     } else if (err.errno == 1048) {
         err = "Null value was passed into a Not Null column."
     } else if (err.errno == 1062) {
@@ -105,8 +107,8 @@ app.post("/users", function (req, res) {
             }
         } else {
             actLog(req, result);
-                res.status(201).send(`ID of the newly created user:
-                {"userid": ${result.insertId}}`);
+            res.status(201).send(`ID of the newly created user:
+            {"userid": ${result.insertId}}`);
         }
     });
 })
@@ -119,8 +121,13 @@ app.get('/users', function (req, res) {
             actLog(req, result);
             res.status(200).send(result);
         } else {
-            errLog(req, err);
-            res.status(500).end();
+            if (result.length == 0) {
+                errLog(req, err, "User database is empty");
+                res.status(500).end(); // User database doesn't have any data
+            } else {
+                errLog(req, err);
+                res.status(500).end();
+            };
         };
     });
 });
@@ -135,11 +142,16 @@ app.get("/users/:id", function (req, res) {
             errLog(req, err);
             res.status(500).end(); // Unknown error
         }else {
-            actLog(req, result);
-            res.status(200).type('json').send(result);
-        }
+            if (result == null) {
+                errLog(req, err, "Userid doesn't exist");
+                res.status(500).end(); // Userid doesn't exist
+            } else {
+                actLog(req, result);
+                res.status(200).type('json').send(result);
+            };
+        };
     });
-})
+});
 
 // Update User
 // http://localhost:3000/users/6
@@ -152,8 +164,7 @@ app.put("/users/:id", function (req, res) {
         "pass": req.body.password,
         "type": req.body.type,
         "picUrl" : req.body.profile_pic_url
-    }
-
+    };
     User.edit(uid, data, function(err, result) {
         if(err) {
             errLog(req, err);
@@ -164,15 +175,15 @@ app.put("/users/:id", function (req, res) {
             }
         } else {
             if (result.changedRows == 0) {
+                errLog(req, err);
                 res.status(500).end(); // No changes
             } else {
                 actLog(req, result, "User is updated!");
                 res.status(204).send();
-            }
-            
-        }
+            };
+        };
     });
-})
+});
 // End of User Endpoints
 //----------------------------------------
 
@@ -240,13 +251,18 @@ app.post("/product", function (req, res) {
 app.get("/product/:id", function (req, res) {
     const productID = parseInt(req.params.id);
     Product.findByID(productID, function (error, result) {
-      if (error) {
-        errLog(req, error, "Cannot find product by id!");
-        res.status(500).send();
-        return;
-      }
-      actLog(req, result, "Product is found!");
-      res.status(200).send(`Info of the matching product (including category name):\n ${JSON.stringify(result)}`);
+        if (error) {
+            errLog(req, error, "Cannot find product by id!");
+            res.status(500).send();
+        } else {
+            if (result == null) {
+                errLog(req, err, "Productid doesn't exist");
+                res.status(500).end(); // Productid doesn't exist
+            } else {
+                actLog(req, result, "Product is found!");
+            res.status(200).send(`Info of the matching product (including category name):\n ${JSON.stringify(result)}`);
+            };
+        };
     });
 });
 
