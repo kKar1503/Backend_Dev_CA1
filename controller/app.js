@@ -187,12 +187,15 @@ app.put("/users/:id", function (req, res) {
                 res.status(500).send(); // internal error
             }
         } else {
-            if (result.changedRows == 0) {
-                actLog(req, result, "Existing row is set to its current values");
-                res.status(200).send("Existing row is set to its current values"); // No changes as the changed info is same as previous one(existing row is set to its current values)
-            } else {
+            if (result.affectedRows == 0) {
+                actLog(req, result, "User cannot be updated as not found!");
+                res.status(404).send("User cannot be updated as not found!");
+            } else if (result.changedRows == 1) {
                 actLog(req, result, "User is updated!");
                 res.status(204).send();
+            } else {
+                actLog(req, result, "Existing row is set to its current values");
+                res.status(200).send("Existing row is set to its current values"); // No changes as the changed info is same as previous one(existing row is set to its current values)
             };
         };
     });
