@@ -25,7 +25,7 @@ let Review = {
                                 INSERT INTO
                                         review (userid, rating, review, productid)
                                 VALUES
-                                        (?, ?, ?, ) 
+                                        (?, ?, ?, ?) 
                            `;
 
                 dbConn.query(sql, [data.userid, data.rating, data.review, data.productID], (error, result) => {
