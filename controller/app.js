@@ -85,7 +85,7 @@ app.use(jsonParser); // Parse JSON data
 //----------------------------------------
 // Start of User Endpoints
 
-// POST New User [Pending]
+// POST New User [Done]
 // http://localhost:3000/users
 app.post("/users", function (req, res) {
     let data = {
@@ -103,7 +103,7 @@ app.post("/users", function (req, res) {
             if(err.errno == 1062) {
                 res.status(422).send(); // The new username OR new email provided already exists.
             } else {
-                res.status(500).send(); // Unknown error
+                res.status(500).send(); // internal error
             }
         } else {
             actLog(req, result);
@@ -118,16 +118,16 @@ app.post("/users", function (req, res) {
 app.get('/users', function (req, res) {
     User.getUsers(function(err, result) {
         if (!err) {
-            actLog(req, result);
-            res.status(200).send(result);
-        } else {
             if (result.length == 0) {
-                errLog(req, err, "User database is empty");
-                res.status(500).end(); // User database doesn't have any data
+                actLog(req, result, "User database is empty");
+                res.status(404).send("No users found!"); // User database doesn't have any data
             } else {
+                actLog(req, result, "Users found!");
+                res.status(200).send(result);
+            }
+        } else {
                 errLog(req, err);
                 res.status(500).end();
-            };
         };
     });
 });
@@ -138,20 +138,21 @@ app.get("/users/:id", function (req, res) {
     let uid = parseInt(req.params.id);
     if(isNaN(uid)) {
         console.log("Input user id is NaN!"); 
-        res.status(500).end();
+        res.status(400).send("Invalid input");
         return;
     }
 
     User.findByID(uid, function(err, result) {
         if(err) {
             errLog(req, err);
-            res.status(500).end(); // Unknown error
+            res.status(500).end(); // internal error
         }else {
             if (result == null) {
+                actLog(req, result, "find user by id");
                 console.log("Userid doesn't exist");
-                res.status(500).end(); // Userid doesn't exist
+                res.status(404).send("Userid doesn't exist"); // Userid doesn't exist
             } else {
-                actLog(req, result);
+                actLog(req, result, "find user by id");
                 res.status(200).type('json').send(result);
             }
         };
@@ -165,7 +166,7 @@ app.put("/users/:id", function (req, res) {
 
     if(isNaN(uid)) {
         errLog(req, err, "Input user id is NaN!");
-        res.status(500).end();
+        res.status(400).send("Invalid input");
         return;
     }
 
@@ -179,16 +180,16 @@ app.put("/users/:id", function (req, res) {
     };
     User.edit(uid, data, function(err, result) {
         if(err) {
-            errLog(req, err);
+            errLog(req, err, "Update user error");
             if(err.errno == 1062) {
                 res.status(422).send(); // The new username OR new email provided already exists.
             } else {
-                res.status(500).send(); // Unknown error
+                res.status(500).send(); // internal error
             }
         } else {
             if (result.changedRows == 0) {
-                errLog(req, err, "No new change information added!");
-                res.status(500).end(); // No changes as the changed info is same as previous one
+                actLog(req, result, "Existing row is set to its current values");
+                res.status(200).send("Existing row is set to its current values"); // No changes as the changed info is same as previous one(existing row is set to its current values)
             } else {
                 actLog(req, result, "User is updated!");
                 res.status(204).send();
@@ -206,22 +207,22 @@ app.put("/users/:id", function (req, res) {
 // http://localhost:3000/category
 app.get('/category', function (req, res) {
     Category.getCats(function(err, result) {
-        if (!err) {
-            actLog(req, result, "GET Category");
-            res.status(200).send(result);
-        } else {
+        if (!err) { // no internal error
             if(result.length == 0) {
-                errLog(req, err, "Category database is empty");
-                res.status(500).end(); 
+                actLog(req, result, "Category database is empty");
+                res.status(404).send("Category database is empty"); 
             } else {
-                errLog(req, err, "GET Category err");
-                res.status(500).end(); // Unknown error
+                actLog(req, result, "GET Category");
+                res.status(200).send(result);
             }
+        } else {
+                errLog(req, err, "GET Category error");
+                res.status(500).end(); // internal error
         };
     });
 });
 
-// POST New Category [Pending]
+// POST New Category [Done]
 // http://localhost:3000/category
 app.post('/category', function (req, res) {
     let cat = {
@@ -273,7 +274,7 @@ app.get("/product/:id", function (req, res) {
     const productID = parseInt(req.params.id);
     if(isNaN(productID)) {
         console.log("Input product id is NaN!"); 
-        res.status(500).end();
+        res.status(400).send("Invalid input");
         return;
     }
     
@@ -284,7 +285,7 @@ app.get("/product/:id", function (req, res) {
         } else {
             if (result == null) {
                 console.log("Productid doesn't exist"); 
-                res.status(500).end(); // Productid doesn't exist
+                res.status(404).send("Productid doesn't exist"); // Productid doesn't exist
             } else {
                 actLog(req, result, "Product is found!");
                 res.status(200).send(`Info of the matching product (including category name):\n ${JSON.stringify(result)}`);
@@ -294,24 +295,29 @@ app.get("/product/:id", function (req, res) {
 });
 
 
-// Delete the product by product ID
+// Delete the product by product ID [Done]
 // http://localhost:3000/product/1 
 app.delete("/product/:id", function (req, res) {
     const productID = parseInt(req.params.id);
     if(isNaN(productID)) {
         console.log("Input product id is NaN!"); 
-        res.status(500).end();
+        res.status(400).send("Invalid input");
         return;
     }
 
     Product.delete(productID, (error, result) => {
         if (error) {
-            errLog(req, error, "Cannot delete product");
-            res.status(500).send(); // Unknown error
+            if(err.errno == 1451) {
+                errLog(req, error, "Cannot delete or update a parent row");//ER_ROW_IS_REFERENCED_2
+                res.status(500).send();
+            }else {
+                errLog(req, error, "Cannot delete product");
+                res.status(500).send(); // Unknown error
+            }
         }else {
             if(result.affectedRows == 0) {
-                console.log(`Product ${productID} not found!`);
-                res.status(500).send();
+                actLog(req, result, `Product ${productID} not found!`);
+                res.status(404).send(`Product ${productID} not found!`);
             } else {
                 actLog(req, result, "Product deleted!");
                 res.status(204).send();
@@ -325,10 +331,15 @@ app.delete("/product/:id", function (req, res) {
 //----------------------------------------
 // Start of Review Endpoints
 
-// Add New review
+// Add New review [Done]
 // http://localhost:3000/product/:id/review
 app.post("/product/:id/review", function (req, res) {
     const productID = parseInt(req.params.id);
+    if(isNaN(productID)) {
+        console.log("Input product id is NaN!"); 
+        res.status(400).send("Invalid input");
+        return;
+    }
 
     let data = {
         "userid": req.body.userid, // must match the postman json body
@@ -349,14 +360,25 @@ app.post("/product/:id/review", function (req, res) {
     });
 });
 
-// GET all the reviews of one particular product by product ID
+// GET all the reviews of one particular product by product ID [Done]
 // http://localhost:3000/product/2/reviews
 app.get('/product/:id/reviews', function (req, res) {
     const productID = parseInt(req.params.id);
+    if(isNaN(productID)) {
+        console.log("Input product id is NaN!"); 
+        res.status(400).send("Invalid input");
+        return;
+    }
+
     Review.getReviews(productID,function(err, result) {
         if (!err) {
-            actLog(req, result, "Reviews are retrieved!");
-            res.status(200).send(result);
+            if (result.length == 0) {
+                errLog(req, err, "No reviews for this product");
+                res.status(404).send("No reviews for this product"); // This product doesn't have any review
+            } else {
+                actLog(req, result, "Reviews are retrieved!");
+                res.status(200).send(result);
+            }
         } else {
             errLog(req, err, "Cannot retrive reviews");
             res.status(500).end();
@@ -370,10 +392,16 @@ app.get('/product/:id/reviews', function (req, res) {
 //----------------------------------------
 // Start of Interest Endpoints
 
-// POST New Interest
+// POST New Interest [Done]
 // http://localhost:3000/interest/:userid
 app.post('/interest/:userid', function (req, res) {
     let uid = parseInt(req.params.userid);
+    if(isNaN(uid)) {
+        console.log("Input user id is NaN!"); 
+        res.status(400).send("Invalid input"); // invalid input
+        return;
+    }
+
     let int = req.body.categoryids;
     Interest.add(uid, int, function(err, result) {
         if (!err) {
