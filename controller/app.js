@@ -85,7 +85,7 @@ app.use(jsonParser); // Parse JSON data
 //----------------------------------------
 // Start of User Endpoints
 
-// POST New User
+// POST New User [Pending]
 // http://localhost:3000/users
 app.post("/users", function (req, res) {
     let data = {
@@ -113,7 +113,7 @@ app.post("/users", function (req, res) {
     });
 })
 
-// GET all the users
+// GET all the users [Done]
 // http://localhost:3000/users
 app.get('/users', function (req, res) {
     User.getUsers(function(err, result) {
@@ -132,31 +132,43 @@ app.get('/users', function (req, res) {
     });
 });
 
-// Find User by ID
+// Find User by ID [Done]
 // http://localhost:3000/users/3
 app.get("/users/:id", function (req, res) {
     let uid = parseInt(req.params.id);
-    
+    if(isNaN(uid)) {
+        console.log("Input user id is NaN!"); 
+        res.status(500).end();
+        return;
+    }
+
     User.findByID(uid, function(err, result) {
         if(err) {
             errLog(req, err);
             res.status(500).end(); // Unknown error
         }else {
             if (result == null) {
-                errLog(req, err, "Userid doesn't exist");
+                console.log("Userid doesn't exist");
                 res.status(500).end(); // Userid doesn't exist
             } else {
                 actLog(req, result);
                 res.status(200).type('json').send(result);
-            };
+            }
         };
     });
 });
 
-// Update User
+// Update User [Done]
 // http://localhost:3000/users/6
 app.put("/users/:id", function (req, res) {
     let uid = parseInt(req.params.id);
+
+    if(isNaN(uid)) {
+        errLog(req, err, "Input user id is NaN!");
+        res.status(500).end();
+        return;
+    }
+
     let data = {
         "username": req.body.username, // must match the postman json body
         "email": req.body.email,
@@ -175,8 +187,8 @@ app.put("/users/:id", function (req, res) {
             }
         } else {
             if (result.changedRows == 0) {
-                errLog(req, err);
-                res.status(500).end(); // No changes
+                errLog(req, err, "No new change information added!");
+                res.status(500).end(); // No changes as the changed info is same as previous one
             } else {
                 actLog(req, result, "User is updated!");
                 res.status(204).send();
@@ -190,7 +202,7 @@ app.put("/users/:id", function (req, res) {
 //----------------------------------------
 // Start of Category Endpoints
 
-// GET all the category
+// GET all the category [Done]
 // http://localhost:3000/category
 app.get('/category', function (req, res) {
     Category.getCats(function(err, result) {
@@ -198,13 +210,18 @@ app.get('/category', function (req, res) {
             actLog(req, result, "GET Category");
             res.status(200).send(result);
         } else {
-            errLog(req, err, "GET Category");
-            res.status(500).end(); // Unknown error
+            if(result.length == 0) {
+                errLog(req, err, "Category database is empty");
+                res.status(500).end(); 
+            } else {
+                errLog(req, err, "GET Category err");
+                res.status(500).end(); // Unknown error
+            }
         };
     });
 });
 
-// POST New Category
+// POST New Category [Pending]
 // http://localhost:3000/category
 app.post('/category', function (req, res) {
     let cat = {
@@ -213,10 +230,10 @@ app.post('/category', function (req, res) {
     }
     Category.addCat(cat, function(err, result) {
         if (!err) {
-            actLog(req, result, "POST Category");
+            actLog(req, result, "POST Category success");
             res.status(204).send();
         } else {
-            errLog(req, err, "POST Category");
+            errLog(req, err, "POST Category failed");
             if (err.errno == 1062) {
                 res.status(422).end(); // The category name provided already exists.
             } else {
@@ -232,35 +249,45 @@ app.post('/category', function (req, res) {
 //----------------------------------------
 // Start of Product Endpoints
 
-// Add new product to db
+// Add new product to db [Pending]
 // http://localhost:3000/product
 app.post("/product", function (req, res) {
     Product.insert(req.body, function (error, result) {
       if (error) {
-        errLog(req, error, "Cannot add new product");
-        res.status(500).send(); // Unknown error
-        return;
+        errLog(req, err, "Cannot add new product");
+        if(err.errno == 1062) {
+            res.status(422).send(); // The new username OR new email provided already exists.
+        } else {
+            res.status(500).send(); // Unknown error
+        }
+      } else {
+        actLog(req, result, "New product added");
+        res.status(201).send(`ID of the newly created listing: \n{\n"productid": ${result.insertId}\n}`);
       }
-      actLog(req, result, "New product added");
-      res.status(201).send(`ID of the newly created listing: \n{\n"productid": ${result.insertId}\n}`);
     });
 });
 
-// Find the product by product ID
+// Find the product by product ID [Done]
 // http://localhost:3000/product/3
 app.get("/product/:id", function (req, res) {
     const productID = parseInt(req.params.id);
+    if(isNaN(productID)) {
+        console.log("Input product id is NaN!"); 
+        res.status(500).end();
+        return;
+    }
+    
     Product.findByID(productID, function (error, result) {
         if (error) {
             errLog(req, error, "Cannot find product by id!");
             res.status(500).send();
         } else {
             if (result == null) {
-                errLog(req, err, "Productid doesn't exist");
+                console.log("Productid doesn't exist"); 
                 res.status(500).end(); // Productid doesn't exist
             } else {
                 actLog(req, result, "Product is found!");
-            res.status(200).send(`Info of the matching product (including category name):\n ${JSON.stringify(result)}`);
+                res.status(200).send(`Info of the matching product (including category name):\n ${JSON.stringify(result)}`);
             };
         };
     });
@@ -271,15 +298,25 @@ app.get("/product/:id", function (req, res) {
 // http://localhost:3000/product/1 
 app.delete("/product/:id", function (req, res) {
     const productID = parseInt(req.params.id);
+    if(isNaN(productID)) {
+        console.log("Input product id is NaN!"); 
+        res.status(500).end();
+        return;
+    }
 
     Product.delete(productID, (error, result) => {
         if (error) {
             errLog(req, error, "Cannot delete product");
             res.status(500).send(); // Unknown error
-            return;
+        }else {
+            if(result.affectedRows == 0) {
+                console.log(`Product ${productID} not found!`);
+                res.status(500).send();
+            } else {
+                actLog(req, result, "Product deleted!");
+                res.status(204).send();
+            }
         }
-        actLog(req, result, "Product deleted!");
-        res.status(204).send();
     });
 });
 // End of Product Endpoints
