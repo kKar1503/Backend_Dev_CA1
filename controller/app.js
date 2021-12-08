@@ -17,7 +17,6 @@ const fs = require('fs'); // Import File System Module
 
 const bodyParser = require('body-parser'); 
 const multer = require('multer');
-const upload = multer({dest: './uploads/'});
 const User = require("../model/user.js");
 const Category = require("../model/category.js");
 const Interest = require("../model/interest.js");
@@ -64,7 +63,21 @@ function errLog(req, err, note = "") {  // Creates a log files for error logging
     } else if (err.errno == 1062) {
         err = "Duplicated entry."
     };
-    logger.error(`[Request from: ${req.ip}]\n[Timestamp: ${timestamp}]\nRequest Type: ${req.method}\nRequest Made: ${JSON.stringify(req.body)}\nOutput: ${note}\n${JSON.stringify(err)}\n`);};
+    logger.error(`[Request from: ${req.ip}]\n[Timestamp: ${timestamp}]\nRequest Type: ${req.method}\nRequest Made: ${JSON.stringify(req.body)}\nOutput: ${note}\n${JSON.stringify(err)}\n`);
+};
+
+//----------------------------------------
+// Configuration for Multer (Image Uploading Endpoint)
+//----------------------------------------
+const storage = multer.diskStorage({
+    destination: function(req, files, callback) {
+        callback(null, './uploads/');
+    },
+    filename: function(req, file, callback) {
+        callback(null, new Date().toISOString() + file.originalname);
+    }
+});
+const upload = multer({storage: storage});
 
 //----------------------------------------
 // Configurations for bodyParser
@@ -421,14 +434,14 @@ app.post('/interest/:userid', function (req, res) {
 //----------------------------------------
 
 //----------------------------------------
-// Start of Interest Endpoints
+// Start of Image Upload Endpoints
 
 app.post('/upload', upload.single('productImage'), function(req, res) {
     console.log(req.file);
     res.status(200).send('received');
 });
 
-// End of Interest Endpoints
+// End of Image Upload Endpoints
 //----------------------------------------
 
 //----------------------------------------
