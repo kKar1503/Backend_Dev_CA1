@@ -74,10 +74,24 @@ const storage = multer.diskStorage({
         callback(null, './uploads/');
     },
     filename: function(req, file, callback) {
-        callback(null, new Date().toISOString() + file.originalname);
+        callback(null, new Date().toISOString().replace(/:/g, '-') + file.originalname);
     }
 });
-const upload = multer({storage: storage});
+const fileFilter = (req, file, callback) => {
+    // Reject a File
+    if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png' || file.mimetype === 'image/jpg') { // Limit to JPG/JPEG/PNG
+        callback(null, true);
+    } else {
+        callback(new Error('Filetype Mismatched: Only accepts JPEG/JPG/PNG'), false);
+    };
+};
+const upload = multer({
+    storage: storage,
+    limits: {
+        fileSize: 1024 * 1024, // Limit to 1MB
+    },
+    fileFilter: fileFilter
+});
 
 //----------------------------------------
 // Configurations for bodyParser
@@ -437,7 +451,7 @@ app.post('/interest/:userid', function (req, res) {
 // Start of Image Upload Endpoints
 
 app.post('/upload', upload.single('productImage'), function(req, res) {
-    console.log(req.file);
+    // console.log(req)
     res.status(200).send('received');
 });
 
