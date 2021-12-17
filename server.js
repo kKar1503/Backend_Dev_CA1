@@ -15,12 +15,14 @@ const app = require("./controller/app.js");
 // Configurations for Server
 //----------------------------------------
 var port = 3000;
-var hostname="localhost";
+var hostname = "localhost";
 
 //----------------------------------------
 // Main Logic
 //----------------------------------------
 
 app.listen(port, hostname, () => {
-    console.log(`Server started and accessible via http://${hostname}:${port}/`);
+	console.log(
+		`Server started and accessible via http://${hostname}:${port}/`
+	);
 });

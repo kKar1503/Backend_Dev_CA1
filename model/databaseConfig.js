@@ -16,23 +16,22 @@ require("dotenv").config();
 // Main Code Implementations
 //----------------------------------------
 var dbconnect = {
-    getConnection: function () {
-    // Here just build connection, but haven't yet start the connection
-        var conn = mysql.createConnection({
-            host: process.env.DB_HOST,
-            port: process.env.DB_PORT,
-            user: process.env.DB_USER,
-            password: process.env.DB_PASS, // Password of the MySQL Database
-            database: 'it_products',
-            dateStrings: true,
-            multipleStatements: true
-        });
-  
-        return conn; // Returning a Connection Object
-    }
+	getConnection: function () {
+		// Here just build connection, but haven't yet start the connection
+		var conn = mysql.createConnection({
+			host: process.env.DB_HOST,
+			port: process.env.DB_PORT,
+			user: process.env.DB_USER,
+			password: process.env.DB_PASS, // Password of the MySQL Database
+			database: "it_products",
+			dateStrings: true,
+			multipleStatements: true,
+		});
+
+		return conn; // Returning a Connection Object
+	},
 };
 
-  
 //----------------------------------------
 // Module Export
 //----------------------------------------

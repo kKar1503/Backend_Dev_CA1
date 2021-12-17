@@ -14,9 +14,7 @@ const db = require("./databaseConfig.js");
 //----------------------------------------
 // Main Code Implementations
 //----------------------------------------
-let Image = {
-    
-};
+let Image = {};
 
 //----------------------------------------
 // Module Export
