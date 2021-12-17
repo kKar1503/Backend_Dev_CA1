@@ -1,27 +1,28 @@
 {
-  "name": "backend_dev_ca1",
-  "version": "1.0.0",
-  "description": "This is the Backend Development CA1 Project for School Year 1 Semester 1",
-  "main": "server.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/kKar1503/Backend_Dev_CA1.git"
-  },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/kKar1503/Backend_Dev_CA1/issues"
-  },
-  "homepage": "https://github.com/kKar1503/Backend_Dev_CA1#readme",
-  "dependencies": {
-    "body-parser": "^1.19.0",
-    "dotenv": "^10.0.0",
-    "express": "^4.17.1",
-    "multer": "^1.4.3",
-    "mysql": "^2.18.1"
-  }
+	"name": "backend_dev_ca1",
+	"version": "1.0.0",
+	"description": "This is the Backend Development CA1 Project for School Year 1 Semester 1",
+	"main": "server.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"start": "node server.js"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/kKar1503/Backend_Dev_CA1.git"
+	},
+	"author": "",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/kKar1503/Backend_Dev_CA1/issues"
+	},
+	"homepage": "https://github.com/kKar1503/Backend_Dev_CA1#readme",
+	"dependencies": {
+		"body-parser": "^1.19.0",
+		"chart.js": "^3.6.2",
+		"dotenv": "^10.0.0",
+		"express": "^4.17.1",
+		"multer": "^1.4.3",
+		"mysql": "^2.18.1"
+	}
 }
