@@ -9,12 +9,40 @@
 //----------------------------------------
 // Imports
 //----------------------------------------
+const { query } = require("express");
 const db = require("./databaseConfig.js");
 
 //----------------------------------------
 // Main Code Implementations
 //----------------------------------------
-let Image = {};
+let Image = {
+	upload: function (fileName, productID, callback) {
+		var dbConn = db.getConnection();
+		dbConn.connect(function (err) {
+			if (err) {
+				return callback(err, null);
+			} else {
+				console.log("connected");
+				const sql = `
+                            UPDATE
+                                product
+                            SET
+                                image_file_name  = ?
+                            WHERE
+                                productid = ?
+                            `;
+
+				dbConn.query(sql, [fileName, productID], (err, result) => {
+					dbConn.end();
+					if (err) {
+						return callback(err, null);
+					}
+					return callback(null, result);
+				});
+			}
+		});
+	},
+};
 
 //----------------------------------------
 // Module Export

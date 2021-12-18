@@ -22,6 +22,7 @@ const Category = require("../model/category.js");
 const Interest = require("../model/interest.js");
 const Product = require("../model/product.js");
 const Review = require("../model/review.js");
+const Image = require("../model/image.js");
 
 //----------------------------------------
 // Creating a Log File System
@@ -491,7 +492,8 @@ app.post("/interest/:userid", function (req, res) {
 //----------------------------------------
 // Start of Image Upload Endpoints
 
-app.post("/upload", (req, res) => {
+app.post("/upload/:productID", (req, res) => {
+	let productID = parseInt(req.params.productID);
 	upload(req, res, function (err) {
 		if (err instanceof multer.MulterError) {
 			errLog(req, err, "Multer Error");
@@ -500,13 +502,20 @@ app.post("/upload", (req, res) => {
 			errLog(req, err, "Non-Multer Error from Multer");
 			res.status(406).send(err.message);
 		} else {
-			console.log(req.file);
-			res.status(200).sendFile(`uploads/${req.file.filename}`, {
-				root: "./",
-			}); //Received
+			Image.upload(req.file.filename, productID, function (err, result) {
+				if (!err) {
+					actLog(req.file, result, "Image Uploaded");
+					res.status(200).end(); // Image Uploaded
+				} else {
+					errLog(req.file, err, "Image Upload Failed");
+					res.status(500).end(); // Image upload failed
+				}
+			});
+			// res.status(200).sendFile(`uploads/${req.file.filename}`, {
+			// 	root: "./",
+			// }); //Received
 		}
 	});
-	// res.status(200).send("received");
 });
 
 // End of Image Upload Endpoints
