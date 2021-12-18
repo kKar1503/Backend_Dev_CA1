@@ -492,7 +492,7 @@ app.post("/interest/:userid", function (req, res) {
 //----------------------------------------
 // Start of Image Upload Endpoints
 
-app.post("/upload/:productID", (req, res) => {
+app.post("/product/image/:productID", (req, res) => {
 	let productID = parseInt(req.params.productID);
 	upload(req, res, function (err) {
 		if (err instanceof multer.MulterError) {
