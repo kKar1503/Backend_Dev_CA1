@@ -23,6 +23,7 @@ const Interest = require("../model/interest.js");
 const Product = require("../model/product.js");
 const Review = require("../model/review.js");
 const Image = require("../model/image.js");
+const e = require("express");
 
 //----------------------------------------
 // Creating a Log File System
@@ -511,9 +512,64 @@ app.post("/product/image/:productID", (req, res) => {
 					res.status(500).end(); // Image upload failed
 				}
 			});
-			// res.status(200).sendFile(`uploads/${req.file.filename}`, {
-			// 	root: "./",
-			// }); //Received
+		}
+	});
+});
+
+app.get("/product/image/:productID", (req, res) => {
+	let productID = parseInt(req.params.productID);
+	Image.get(productID, function (err, result) {
+		if (!err) {
+			actLog(req, result, "Image GET Request");
+			res.status(200).sendFile(`uploads/${result}`, {
+				root: "./",
+			});
+		} else {
+			errLog(req, err, "Image GET Request failed");
+			res.status(500).end();
+		}
+	});
+});
+
+app.put("/product/image/:productID", (req, res) => {
+	let productID = parseInt(req.params.productID);
+	let overwrite;
+	if (parseInt(req.query.Overwrite) == undefined) {
+		overwrite == 0;
+	} else {
+		overwrite == parseInt(req.query.Overwrite);
+	}
+	upload(req, res, function (err) {
+		if (err instanceof multer.MulterError) {
+			errLog(req, err, "Multer Error");
+			res.status(406).send(`Upload Error: ${err.message}`); // Multer Error
+		} else if (err) {
+			errLog(req, err, "Non-Multer Error from Multer");
+			res.status(406).send(err.message); // Filetype Mismatched
+		} else {
+			Image.update(
+				req.file.filename,
+				productID,
+				overwrite,
+				function (err, result) {
+					if (!err) {
+						actLog(req.file, result, "Image updated");
+						res.status(200).end(); // Image Updated
+					} else if (err == "Existing File") {
+						errLog(
+							req.file,
+							err,
+							"Existing Image in Database during Image PUT Request"
+						);
+						res.status(422)
+							.send(`Existing Image in Database for ${result.name}. 
+					To overwrite system file, add query "Overwrite=1"`);
+					} else {
+						errLog(req.file, err, "Image update failed");
+						res.status(500).send(); // Image update failed
+					}
+				}
+			);
 		}
 	});
 });
