@@ -121,7 +121,7 @@ const upload = multer({
 		fileSize: 1024 * 1024, // Limit to 1MB
 	},
 	fileFilter: fileFilter,
-});
+}).single("productImage");
 
 //----------------------------------------
 // Configurations for bodyParser
@@ -491,9 +491,22 @@ app.post("/interest/:userid", function (req, res) {
 //----------------------------------------
 // Start of Image Upload Endpoints
 
-app.post("/upload", upload.single("productImage"), function (req, res) {
-	// console.log(req)
-	res.status(200).send("received");
+app.post("/upload", (req, res) => {
+	upload(req, res, function (err) {
+		if (err instanceof multer.MulterError) {
+			errLog(req, err, "Multer Error");
+			res.status(406).send(`Upload Error: ${err.message}`);
+		} else if (err) {
+			errLog(req, err, "Non-Multer Error from Multer");
+			res.status(406).send(err.message);
+		} else {
+			console.log(req.file);
+			res.status(200).sendFile(`uploads/${req.file.filename}`, {
+				root: "./",
+			}); //Received
+		}
+	});
+	// res.status(200).send("received");
 });
 
 // End of Image Upload Endpoints
