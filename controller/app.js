@@ -11,6 +11,7 @@
 //----------------------------------------
 const express = require("express");
 const app = express(); // Creates an Express Object and export it
+const jwt = require("jsonwebtoken");
 
 const { Console } = require("console"); // Import Console Module for generating log files
 const fs = require("fs"); // Import File System Module
@@ -24,6 +25,7 @@ const Product = require("../model/product.js");
 const Review = require("../model/review.js");
 const Image = require("../model/image.js");
 const Chart = require("../model/chart.js");
+const Login = require("../model/login.js");
 
 //----------------------------------------
 // Creating a Log File System
@@ -145,7 +147,7 @@ app.use(jsonParser); // Parse JSON data
 
 // POST New User [Done]
 // http://localhost:3000/users
-app.post("/users", function (req, res) {
+app.post("/users", async function (req, res) {
 	let data = {
 		username: req.body.username, // must match the postman json body
 		email: req.body.email,
@@ -618,6 +620,44 @@ app.get("/interest/chart", function (req, res) {
 });
 
 // End of charts Endpoints
+//----------------------------------------
+
+//----------------------------------------
+// Start of Login/API Key Endpoints
+// GET Token [working]
+// http://localhost:3000/login
+
+app.post("/login", function (req, res) {
+	let loginData = {
+		user: req.body.username,
+		pass: req.body.password,
+	};
+	Login.authenticate(loginData, function (err, result) {
+		if (err) {
+			res.status(500).send("Internal Server Error!");
+		} else if (result.length == 0) {
+			res.status(401).send("User does not exist!");
+		} else if (result[0].password != loginData.pass) {
+			res.status(401).send("Invalid Password!");
+		} else if (result[0].type == "Customer") {
+			res.status(403).send(
+				"You are not allowed to access Admin API Keys."
+			);
+		} else {
+			loginData.type = result[0].type;
+			const accessToken = jwt.sign(loginData, process.env.API_KEY_1);
+			res.json({ accessToken: accessToken });
+		}
+	});
+});
+
+// End of Login/API Key Endpoints
+//----------------------------------------
+
+//----------------------------------------
+// Authentication Middleware
+
+// Authentication Middleware
 //----------------------------------------
 
 //----------------------------------------
