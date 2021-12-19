@@ -10,28 +10,12 @@
 // Imports
 //----------------------------------------
 const db = require("./databaseConfig.js");
-
-//----------------------------------------
-// Configuration and set up for pie chart (interest category)
-//----------------------------------------
-
-const pieData = {
-	labels: [], // category name (use join table)
-
-	datasets: [
-		{
-			label: "Pie_chart",
-			data: [],
-			backgroundColor: "rgb(255,255,255)", // search for npm library for random colour generator
-			hoverOffset: 4,
-		},
-	],
-};
-
-const pieChart = {
-	type: "pie",
-	data: pieData,
-};
+const fs = require('fs');
+const { ChartJSNodeCanvas } = require('chartjs-node-canvas');
+var randomColor = require('randomcolor'); // import the script
+const width = 400; //px
+const height = 400; //px
+const chartJSNodeCanvas = new ChartJSNodeCanvas({ width, height});
 
 //-------------------------------------
 
@@ -47,55 +31,99 @@ let Chart = {
 			} else {
 				console.log("Connection established!");
 
-				var sql = "SELECT fk_category_id FROM interest"; // sql to change to a join table query with category table to get category name
+				var sql = "SELECT category, fk_category_id FROM category, interest WHERE fk_category_id = categoryid"; // sql to change to a join table query with category table to get category name
 				conn.query(sql, function (err, result) {
 					conn.end();
 					if (err) {
 						return callback(err, null);
 					} else {
-						let countCate1 = 0,
-							countCate2 = 0,
-							countCate3 = 0,
-							countCate4 = 0,
-							countCate5 = 0,
-							countCate6 = 0; // change to array for dynamic
-						for (let i = 0; i < result.length; i++) {
-							switch (
-								result[i].fk_category_id // don't need to use switch case.
-							) {
-								case 1:
-									countCate1++;
-									break;
-								case 2:
-									countCate2++;
-									break;
-								case 3:
-									countCate3++;
-									break;
-								case 4:
-									countCate4++;
-									break;
-								case 5:
-									countCate5++;
-									break;
-								case 6:
-									countCate6++;
-									break;
-							}
-						}
-						result = [
-							countCate1,
-							countCate2,
-							countCate3,
-							countCate4,
-							countCate5,
-							countCate6,
-						];
-						for (let i = 0; i < result.length; i++) {
-							pieData.datasets[0].data[i] = result[i];
-						}
-						result = pieChart;
-						return callback(null, result);
+                        console.log(result);
+                        // create and initialize the countCate and labels array
+                        let highest = result[0].fk_category_id;
+                        for(let i = 0; i < result.length; i++) {
+                            if(result[i].fk_category_id > highest) {
+                                highest = result[i].fk_category_id;
+                            }
+                        }
+
+                        let countCate = [];
+                        for(let i = 0; i < highest; i++) {
+                            countCate.push(0);
+                        }
+
+                        for(let i = 0; i < result.length; i++) {
+                            countCate[result[i].fk_category_id - 1] += 1;
+                        }
+                        // create and initialize labels array
+                        let labels = [];
+                        conn.connect(function (err) {
+                            if (err) {
+                                console.log(err);
+                                console.log("????????");
+                                return callback(err, null); // connection err
+                            } else {
+                                console.log("Connection established!");
+                
+                                var sql = "SELECT DISTINCT category FROM category"; // sql to change to a join table query with category table to get category name
+                                conn.query(sql, function (err, result) {
+                                    conn.end();
+                                    if (err) {
+                                        return callback(err, null);
+                                    } else {
+                                        for(let i = 0; i < result.length; i++) {
+                                            labels.push(result[i].category);
+                                        } 
+                                    }
+                                });
+                            }
+                        });
+                                        
+                        let colors = [];
+                        for(let i = 0; i < labels.length; i++) {
+                            colors[i] = randomColor({
+                                count: 1,
+                                format: 'rgb'
+                             });
+                        }
+						// result = countCate;
+                        let filename;
+                        //----------------------------------------
+                        // Configuration and set up for pie chart (interest category)
+                        //----------------------------------------
+                        async () => {
+                            let configuration = {
+                            type: 'pie',
+                            data: {
+                                labels: [], 
+
+                                datasets: [
+                                    {
+                                        label: "Pie_chart",
+                                        data: [],
+                                        backgroundColor: [], 
+                                        hoverOffset: 4,
+                                    },
+                                ]
+                            }
+                            };
+
+                            // build the configuration
+                            configuration.data.datasets[0].data = countCate;
+                            configuration.data.labels = labels;
+                            configuration.data.datasets[0].backgroundColor = colors;
+
+                            console.log(configuration);
+                            console.log(configuration.data.datasets[0].data);
+                            console.log(configuration.data.datasets[0].backgroundColor);
+
+                            let imageBuffer = await chartJSNodeCanvas.renderToBuffer(configuration);
+                            filename = new Date().toISOString().replace(/:/g, "-") + "pieChart.PNG";
+                            console.log(filename);
+
+                            // Write image to file
+                            fs.writeFileSync(`./charts/${filename}`, imageBuffer);
+                            return callback(null, [result, filename]);
+                        };
 					}
 				});
 			}

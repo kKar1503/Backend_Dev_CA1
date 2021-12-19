@@ -596,12 +596,12 @@ app.get("/interest/chart", function (req, res) {
 			if (!err) {
 				// no internal error
 				if (result.length == 0) {
-					actLog(req, result, "Interest database is empty");
+					actLog(req, result[0], "Interest database is empty");
 					res.status(404).send("Interest database is empty");
 				} else {
-					actLog(req, result, "GET interest pie chart");
-
-					res.status(200).sendFile(`charts/pieChart.PNG`, {
+					actLog(req, result[0], "GET interest pie chart");
+					console.log(result[1]);
+					res.status(200).sendFile(`charts/${result[1]}`, {
 						root: "./",
 					});
 					// res.status(200).send(result);
