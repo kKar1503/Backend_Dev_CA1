@@ -17,4 +17,4 @@ node_modules
 uploads/*
 
 # Ignore charts folder
-charts
+charts/*
