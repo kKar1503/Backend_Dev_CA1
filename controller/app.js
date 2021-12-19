@@ -22,6 +22,7 @@ const Category = require("../model/category.js");
 const Interest = require("../model/interest.js");
 const Product = require("../model/product.js");
 const Review = require("../model/review.js");
+const Image = require("../model/image.js");
 const Chart = require("../model/chart.js");
 
 //----------------------------------------
