@@ -9,8 +9,6 @@
 //----------------------------------------
 // Imports
 //----------------------------------------
-const e = require("express");
-const { query } = require("express");
 const db = require("./databaseConfig.js");
 
 //----------------------------------------
