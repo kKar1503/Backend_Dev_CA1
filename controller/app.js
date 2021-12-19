@@ -22,7 +22,6 @@ const Category = require("../model/category.js");
 const Interest = require("../model/interest.js");
 const Product = require("../model/product.js");
 const Review = require("../model/review.js");
-const Chart = require("../model/chart.js");
 //----------------------------------------
 // Creating a Log File System
 //----------------------------------------
@@ -487,44 +486,6 @@ app.post("/interest/:userid", function (req, res) {
 
 // End of Interest Endpoints
 //----------------------------------------
-
-
-//----------------------------------------
-// Start of charts Endpoints
-// GET interest chart [working]
-// http://localhost:3000/interestChart
-app.get("/interestChart", function (req, res) {
-	if(req.get("KEY") == process.env.API_KEY_1 || req.get("KEY") == process.env.API_KEY_2 || req.get("KEY") == process.env.API_KEY_3){
-        Chart.getInterChart(function (err, result) {
-            if (!err) {
-                // no internal error
-                if (result.length == 0) {
-                    actLog(req, result, "Interest database is empty");
-                    res.status(404).send("Interest database is empty");
-                } else {
-                    actLog(req, result, "GET interest pie chart");
-
-					res.status(200).sendFile(`charts/pieChart.PNG`, {
-						root: "./",
-					});
-                    // res.status(200).send(result);
-                }
-            } else {
-                errLog(req, err, "GET interest pie chart");
-                res.status(500).end(); // internal error
-            }
-        });
-    } else {
-        errLog(req, err, "Not authorized");
-        res.status(401).send("You are not authorized!");
-    }
-
-});
-
-// End of charts Endpoints
-//----------------------------------------
-
-
 
 //----------------------------------------
 // Start of Image Upload Endpoints
