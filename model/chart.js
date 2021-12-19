@@ -73,6 +73,10 @@ let Chart = {
 										format: "rgb",
 									});
 								}
+                                // revert array in array to one single array
+                                for(let i = 0; i < colors.length; i++) {
+                                    colors[i] = colors[i][0];
+                                }
 								let filename;
 								//----------------------------------------
 								// Configuration and set up for pie chart (interest category)
@@ -101,15 +105,6 @@ let Chart = {
 									configuration.data.datasets[0].backgroundColor =
 										colors;
 
-									console.log(configuration);
-									console.log(
-										configuration.data.datasets[0].data
-									);
-									console.log(
-										configuration.data.datasets[0]
-											.backgroundColor
-									);
-
 									let imageBuffer =
 										await chartJSNodeCanvas.renderToBuffer(
 											configuration
@@ -120,7 +115,6 @@ let Chart = {
 											.replace(/:/g, "-") +
 										" - " +
 										"pieChart.PNG";
-									console.log(filename);
 
 									// Write image to file
 									fs.writeFileSync(
