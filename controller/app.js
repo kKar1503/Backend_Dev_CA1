@@ -612,7 +612,7 @@ app.get("/interest/chart", function (req, res) {
 			}
 		});
 	} else {
-		errLog(req, err, "Not authorized");
+		errLog(req, null, "Not authorized");
 		res.status(401).send("You are not authorized!");
 	}
 });
