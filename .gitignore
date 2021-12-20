@@ -4,14 +4,8 @@ node_modules
 # Ignore all log files
 *.log
 
-# Ignore all Excel files
-*.xlsx
-
 # Ignore env file
 .env
-
-# Ignore all CSV files from database
-*.csv
 
 # Ignore all uploaded files in ./uploads
 uploads/*
