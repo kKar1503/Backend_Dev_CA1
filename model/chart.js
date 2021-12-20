@@ -64,19 +64,15 @@ let Chart = {
 								return callback(err, null);
 							} else {
 								for (let i = 0; i < result.length; i++) {
-									labels.push(result[i].category);
+									labels.push(result[i].category + " (" + countCate[i] + ")");
 								}
 								let colors = [];
-								for (let i = 0; i < labels.length; i++) {
-									colors[i] = randomColor({
-										count: 1,
+									colors = randomColor({
+										count: labels.length,
 										format: "rgb",
+										hue: "blue"
 									});
-								}
-                                // revert array in array to one single array
-                                for(let i = 0; i < colors.length; i++) {
-                                    colors[i] = colors[i][0];
-                                }
+                                
 								let filename;
 								//----------------------------------------
 								// Configuration and set up for pie chart (interest category)
