@@ -4,11 +4,11 @@ node_modules
 # Ignore all log files
 *.log
 
-# Ignore env file
+# Ignore env file for security reasons
 .env
 
-# Ignore all uploaded files in ./uploads
-uploads/*
+# Ignore uploads folder
+uploads
 
 # Ignore charts folder
-charts/*
+charts
