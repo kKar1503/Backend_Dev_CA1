@@ -11,6 +11,7 @@
 //----------------------------------------
 const express = require("express");
 const app = express(); // Creates an Express Object and export it
+const jwt = require("jsonwebtoken");
 
 const { Console } = require("console"); // Import Console Module for generating log files
 const fs = require("fs"); // Import File System Module
@@ -24,6 +25,8 @@ const Product = require("../model/product.js");
 const Review = require("../model/review.js");
 const Image = require("../model/image.js");
 const Chart = require("../model/chart.js");
+const Login = require("../model/login.js");
+const { send, nextTick } = require("process");
 
 //----------------------------------------
 // Creating a Log File System
@@ -31,8 +34,8 @@ const Chart = require("../model/chart.js");
 
 const logger = new Console({
 	// Create a new console object to handle stdout (logger.log) and stderr (logger.error)
-	stdout: fs.createWriteStream("Activity_Log.txt", { flags: "a" }),
-	stderr: fs.createWriteStream("Error_Log.txt", { flags: "a" }),
+	stdout: fs.createWriteStream("Activity_Log.log", { flags: "a" }),
+	stderr: fs.createWriteStream("Error_Log.log", { flags: "a" }),
 });
 
 /**
@@ -112,7 +115,7 @@ const fileFilter = (req, file, callback) => {
 		callback(null, true);
 	} else {
 		callback(
-			new Error("Filetype Mismatched: Only accepts JPEG/JPG/PNG"),
+			new Error("Filetype Mismatched (Only accepts JPEG/JPG/PNG)"),
 			false
 		);
 	}
@@ -145,7 +148,7 @@ app.use(jsonParser); // Parse JSON data
 
 // POST New User [Done]
 // http://localhost:3000/users
-app.post("/users", function (req, res) {
+app.post("/users", async function (req, res) {
 	let data = {
 		username: req.body.username, // must match the postman json body
 		email: req.body.email,
@@ -506,32 +509,6 @@ app.post("/interest/:userid", function (req, res) {
 
 // POST New image
 // http://localhost:3000/upload
-app.post("/product/image/:productID", (req, res) => {
-	let productID = parseInt(req.params.productID);
-	upload(req, res, function (err) {
-		if (err instanceof multer.MulterError) {
-			errLog(req, err, "Multer Error");
-			res.status(406).send(`Upload Error: ${err.message}`);
-		} else if (err) {
-			errLog(req, err, "Non-Multer Error from Multer");
-			res.status(406).send(err.message);
-		} else {
-			Image.upload(req.file.filename, productID, function (err, result) {
-				if (!err) {
-					actLog(req.file, result, "Image Uploaded");
-					res.status(200).end(); // Image Uploaded
-				} else {
-					errLog(req.file, err, "Image Upload Failed");
-					res.status(500).end(); // Image upload failed
-				}
-			});
-			// res.status(200).sendFile(`uploads/${req.file.filename}`, {
-			// 	root: "./",
-			// }); //Received
-		}
-	});
-});
-
 app.get("/product/image/:productID", (req, res) => {
 	let productID = parseInt(req.params.productID);
 	Image.get(productID, function (err, result) {
@@ -540,6 +517,14 @@ app.get("/product/image/:productID", (req, res) => {
 			res.status(200).sendFile(`uploads/${result}`, {
 				root: "./",
 			});
+		} else if (err.message == "NoProductFound") {
+			errLog(req, err, "Image GET No Product in DB");
+			res.status(404).send(
+				`No product in database with ID = ${productID}`
+			);
+		} else if (err.message == "NoImage") {
+			errLog(req, err, "Image GET No Image in DB");
+			res.status(404).send(`No image in database for ${result}`);
 		} else {
 			errLog(req, err, "Image GET Request failed");
 			res.status(500).end();
@@ -547,21 +532,27 @@ app.get("/product/image/:productID", (req, res) => {
 	});
 });
 
-app.put("/product/image/:productID", (req, res) => {
+app.put("/product/image/:productID", authenticateToken, (req, res) => {
 	let productID = parseInt(req.params.productID);
 	let overwrite;
-	if (parseInt(req.query.Overwrite) == undefined) {
-		overwrite == 0;
+	if (req.query.overwrite == undefined) {
+		overwrite = 0;
 	} else {
-		overwrite == parseInt(req.query.Overwrite);
+		overwrite = parseInt(req.query.overwrite);
 	}
 	upload(req, res, function (err) {
 		if (err instanceof multer.MulterError) {
 			errLog(req, err, "Multer Error");
-			res.status(406).send(`Upload Error: ${err.message}`); // Multer Error
+			if (err.message == "File too large") {
+				res.status(406).send(
+					`Upload Error: ${err.message} (Only accepts up to 1MB)`
+				); // File too large
+			} else {
+				res.status(406).send(`Upload Error: ${err.message}`); // Multer Error
+			}
 		} else if (err) {
 			errLog(req, err, "Non-Multer Error from Multer");
-			res.status(406).send(err.message); // Filetype Mismatched
+			res.status(406).send(`Upload Error: ${err.message}`); // Filetype Mismatched
 		} else {
 			Image.update(
 				req.file.filename,
@@ -571,17 +562,19 @@ app.put("/product/image/:productID", (req, res) => {
 					if (!err) {
 						actLog(req.file, result, "Image updated");
 						res.status(200).end(); // Image Updated
-					} else if (err == "Existing File") {
+					} else if (err.message == "Existing File") {
 						errLog(
 							req.file,
 							err,
 							"Existing Image in Database during Image PUT Request"
 						);
-						res.status(422)
-							.send(`Existing Image in Database for ${result.name}. 
-					To overwrite system file, add query "Overwrite=1"`);
+						fs.unlinkSync(`./uploads/${req.file.filename}`);
+						res.status(422).send(
+							`Existing Image in Database for ${result.name}.\nTo overwrite system file, add query "overwrite=1"`
+						);
 					} else {
 						errLog(req.file, err, "Image update failed");
+						fs.unlinkSync(`./uploads/${req.file.filename}`);
 						res.status(500).send(); // Image update failed
 					}
 				}
@@ -735,6 +728,64 @@ app.delete("/chart", function (req, res) {
 	}
 });
 // End of charts Endpoints
+//----------------------------------------
+
+//----------------------------------------
+// Start of Login/API Key Endpoints
+// GET Token [working]
+// http://localhost:3000/login
+
+app.post("/login", function (req, res) {
+	let loginData = {
+		user: req.body.username,
+		pass: req.body.password,
+	};
+	Login.authenticate(loginData, function (err, result) {
+		if (err) {
+			res.status(500).send("Internal Server Error!");
+		} else if (result.length == 0) {
+			res.status(401).send("User does not exist!");
+		} else if (result[0].password != loginData.pass) {
+			res.status(401).send("Invalid Password!");
+		} else if (result[0].type == "Customer") {
+			res.status(403).send(
+				"You are not allowed to access Admin API Keys."
+			);
+		} else {
+			delete loginData.pass;
+			let accessToken;
+			if (result[0].type == "SuperAdmin") {
+				accessToken = jwt.sign(loginData, process.env.SECRET_KEY);
+			} else {
+				accessToken = jwt.sign(loginData, process.env.SECRET_KEY, {
+					expiresIn: process.env.TOKEN_EXPIRY,
+				});
+			}
+			res.json({ accessToken: accessToken });
+		}
+	});
+});
+
+// End of Login/API Key Endpoints
+//----------------------------------------
+
+//----------------------------------------
+// Authentication Middleware
+
+function authenticateToken(req, res, next) {
+	const authHeader = req.headers.authorization;
+	const token = authHeader && authHeader.split(" ")[1];
+
+	if (token == null) return res.status(401).send();
+
+	jwt.verify(token, process.env.SECRET_KEY, (err, loginData) => {
+		if (err) return res.status(403).send();
+		req.username = loginData.user;
+		next();
+	});
+}
+
+// Authentication Middleware
 //----------------------------------------
 
 //----------------------------------------

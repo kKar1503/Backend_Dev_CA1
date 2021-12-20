@@ -10,50 +10,30 @@
 // Imports
 //----------------------------------------
 const db = require("./databaseConfig.js");
+const fs = require("fs");
 
 //----------------------------------------
 // Main Code Implementations
 //----------------------------------------
 let Image = {
-	upload: function (fileName, productID, callback) {
-		var dbConn = db.getConnection();
-		dbConn.connect(function (err) {
-			if (err) {
-				return callback(err, null);
-			} else {
-				const sql = `
-                            UPDATE
-                                product
-                            SET
-                                image_file_name  = ?
-                            WHERE
-                                productid = ?
-                            `;
-
-				dbConn.query(sql, [fileName, productID], (err, result) => {
-					dbConn.end();
-					if (err) {
-						return callback(err, null);
-					}
-					return callback(null, result);
-				});
-			}
-		});
-	},
 	get: function (productID, callback) {
 		var dbConn = db.getConnection();
 		dbConn.connect(function (err) {
 			if (err) {
 				return callback(err, null);
 			} else {
-				const sql = `SELECT image_file_name FROM product WHERE productid = ?`;
+				const sql = `SELECT name, image_file_name FROM product WHERE productid = ?`;
 				dbConn.query(sql, productID, (err, result) => {
 					dbConn.end();
 					if (err) {
 						return callback(err, null);
+					} else if (result.length == 0) {
+						return callback(new Error(`NoProductFound`), null);
+					} else if (result[0].image_file_name == null) {
+						return callback(new Error("NoImage"), result[0].name);
+					} else {
+						return callback(null, result[0].image_file_name);
 					}
-					console.log(result[0].image_file_name);
-					return callback(null, result[0].image_file_name);
 				});
 			}
 		});
@@ -64,50 +44,39 @@ let Image = {
 			if (err) {
 				return callback(err, null);
 			} else {
-				const sql = `
-                            SELECT
-                                name, image_file_name
-                            FROM
-                                product
-                            WHERE
-                                productid = ?
-                            `;
+				const sql = `SELECT name, image_file_name FROM product WHERE productid = ?`;
 				dbConn.query(sql, productID, (err, result) => {
-					dbConn.end();
 					if (err) {
+						dbConn.end();
 						return callback(err, null);
 					} else if (
 						result[0].image_file_name != null &&
 						overwrite == 0
 					) {
-						return callback("Existing File", result[0]);
+						dbConn.end();
+						return callback(new Error("Existing File"), result[0]);
 					} else {
-						dbConn.connect(function (err) {
-							if (err) {
-								return callback(err, null);
-							} else {
-								const sql = `
-                                            UPDATE
-                                                product
-                                            SET
-                                                image_file_name = ?
-                                            WHERE
-                                                productid = ?
-                                            `;
-								dbConn.query(
-									sql,
-									[filename, productID],
-									(err, result) => {
-										dbConn.end();
-										if (err) {
-											return callback(err, null);
-										}
-										console.log(result);
-										return callback(null, result);
-									}
-								);
+						if (
+							result[0].image_file_name != null &&
+							overwrite == 1
+						) {
+							fs.unlinkSync(
+								`./uploads/${result[0].image_file_name}`
+							);
+						}
+						const sql = `UPDATE product SET image_file_name = ? WHERE productid = ?`;
+						dbConn.query(
+							sql,
+							[filename, productID],
+							(err, result) => {
+								dbConn.end();
+								if (err) {
+									return callback(err, null);
+								}
+								console.log(result);
+								return callback(null, result);
 							}
-						});
+						);
 					}
 				});
 			}
