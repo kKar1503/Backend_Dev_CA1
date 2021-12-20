@@ -26,7 +26,6 @@ const Review = require("../model/review.js");
 const Image = require("../model/image.js");
 const Chart = require("../model/chart.js");
 const Login = require("../model/login.js");
-const { send, nextTick } = require("process");
 
 //----------------------------------------
 // Creating a Log File System
@@ -94,13 +93,21 @@ const storage = multer.diskStorage({
 		callback(null, "./uploads/");
 	},
 	filename: function (req, file, callback) {
-		callback(null, new Date().toISOString().replace(/:/g, "-") + file.originalname);
+		let d = new Date();
+		let date = d.getDate().toString() + d.getMonth().toString() + d.getFullYear().toString();
+		let t =
+			("0" + d.getHours()).slice(-2) +
+			("0" + d.getMinutes()).slice(-2) +
+			("0" + d.getSeconds()).slice(-2) +
+			("00" + d.getMilliseconds()).slice(-3);
+		let extension = file.originalname.substring(file.originalname.lastIndexOf(".") + 1);
+		callback(null, `${date}-${t}_Product_${req.params.productID}.${extension}`);
 	},
 });
 const fileFilter = (req, file, callback) => {
 	// Reject a File
-	if (file.mimetype === "image/jpeg" || file.mimetype === "image/png" || file.mimetype === "image/jpg") {
-		// Limit to JPG/JPEG/PNG
+	if (file.mimetype === "image/jpeg" || file.mimetype === "image/png") {
+		// Limit to JPG/PNG
 		callback(null, true);
 	} else {
 		callback(new Error("Filetype Mismatched (Only accepts JPEG/JPG/PNG)"), false);
@@ -511,7 +518,7 @@ app.get("/product/image/:productID", (req, res) => {
 app.put("/product/image/:productID", authenticateToken, (req, res) => {
 	let productID = parseInt(req.params.productID);
 	let overwrite;
-	if (req.query.overwrite == undefined) {
+	if (!req.query.overwrite) {
 		overwrite = 0;
 	} else {
 		overwrite = parseInt(req.query.overwrite);

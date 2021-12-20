@@ -3,7 +3,7 @@
 // Students:        Li Kehan & Yam Kar Lok
 // Admission No:    P2111575 & P2123181
 // Class:           DIT/FT/1B/04
-// Filename:        category.js
+// Filename:        chart.js
 //----------------------------------------
 
 //----------------------------------------
@@ -56,8 +56,7 @@ let Chart = {
 						// create and initialize labels array
 						let labels = [];
 
-						var categorySQL =
-							"SELECT DISTINCT category FROM category"; // sql to change to a join table query with category table to get category name
+						var categorySQL = "SELECT DISTINCT category FROM category"; // sql to change to a join table query with category table to get category name
 						conn.query(categorySQL, function (err, result) {
 							conn.end();
 							if (err) {
@@ -70,9 +69,9 @@ let Chart = {
 								colors = randomColor({
 									count: labels.length,
 									format: "rgb",
-									hue: "blue"
+									hue: "blue",
 								});
-                                
+
 								let filename;
 								//----------------------------------------
 								// Configuration and set up for pie chart (interest category)
@@ -95,28 +94,15 @@ let Chart = {
 									};
 
 									// build the configuration
-									configuration.data.datasets[0].data =
-										countCate;
+									configuration.data.datasets[0].data = countCate;
 									configuration.data.labels = labels;
-									configuration.data.datasets[0].backgroundColor =
-										colors;
+									configuration.data.datasets[0].backgroundColor = colors;
 
-									let imageBuffer =
-										await chartJSNodeCanvas.renderToBuffer(
-											configuration
-										);
-									filename =
-										new Date()
-											.toISOString()
-											.replace(/:/g, "-") +
-										" - " +
-										"pieChart.PNG";
+									let imageBuffer = await chartJSNodeCanvas.renderToBuffer(configuration);
+									filename = new Date().toISOString().replace(/:/g, "-") + " - " + "pieChart.PNG";
 
 									// Write image to file
-									fs.writeFileSync(
-										`./charts/${filename}`,
-										imageBuffer
-									);
+									fs.writeFileSync(`./charts/${filename}`, imageBuffer);
 									return callback(null, [result, filename]);
 								})();
 							}
@@ -133,20 +119,19 @@ let Chart = {
 			if (err) {
 				return callback(err, null);
 			} else {
-				const sql =
-					"SELECT name, price FROM product WHERE categoryid = ?";
+				const sql = "SELECT name, price FROM product WHERE categoryid = ?";
 				conn.query(sql, [productCateID], (error, result) => {
 					conn.end();
 					if (error) {
 						return callback(error, null);
 					} else {
 						let prices = [];
-						for(let i = 0; i < result.length; i++) {
+						for (let i = 0; i < result.length; i++) {
 							prices.push(result[i].price);
 						}
 
 						let labels = [];
-						for(let i = 0; i < result.length; i++) {
+						for (let i = 0; i < result.length; i++) {
 							labels.push(result[i].name);
 						}
 
@@ -154,37 +139,39 @@ let Chart = {
 						backgroundColors = randomColor({
 							count: labels.length,
 							format: "rgb",
-							hue: "blue"
+							hue: "blue",
 						});
 
 						let borderColors = [];
 						borderColors = randomColor({
 							count: labels.length,
 							format: "rgb",
-							hue: "green"
+							hue: "green",
 						});
 						//----------------------------------------
 						// Configuration and set up for pie chart (interest category)
 						//----------------------------------------
 						(async () => {
 							let configuration = {
-								type: 'bar',
+								type: "bar",
 								data: {
 									labels: [],
-									datasets: [{
-									  label: 'Price Comparison bar chart for category ' + productCateID,
-									  data: [],
-									  backgroundColor: [],
-									  borderColor: [],
-									  borderWidth: 1
-									}]
+									datasets: [
+										{
+											label: "Price Comparison bar chart for category " + productCateID,
+											data: [],
+											backgroundColor: [],
+											borderColor: [],
+											borderWidth: 1,
+										},
+									],
 								},
 								options: {
-								  scales: {
-									y: {
-									  beginAtZero: true
-									}
-								  }
+									scales: {
+										y: {
+											beginAtZero: true,
+										},
+									},
 								},
 							};
 
@@ -194,22 +181,11 @@ let Chart = {
 							configuration.data.datasets[0].backgroundColor = backgroundColors;
 							configuration.data.datasets[0].borderColor = borderColors;
 
-							let imageBuffer =
-								await chartJSNodeCanvas.renderToBuffer(
-									configuration
-								);
-							filename =
-								new Date()
-									.toISOString()
-									.replace(/:/g, "-") +
-								" - " +
-								"barChart.PNG";
+							let imageBuffer = await chartJSNodeCanvas.renderToBuffer(configuration);
+							filename = new Date().toISOString().replace(/:/g, "-") + " - " + "barChart.PNG";
 
 							// Write image to file
-							fs.writeFileSync(
-								`./charts/${filename}`,
-								imageBuffer
-							);
+							fs.writeFileSync(`./charts/${filename}`, imageBuffer);
 							return callback(null, [result, filename]);
 						})();
 					}
@@ -231,15 +207,13 @@ let Chart = {
 								clickTimes = clickTimes + 1
 							WHERE
 								productid = ?;`;
-				dbConn.query(
-					sql, [productID], (error, result) => {
-						dbConn.end();
-						if (error) {
-							return callback(error, null);
-						}
-						return callback(null, result);
+				dbConn.query(sql, [productID], (error, result) => {
+					dbConn.end();
+					if (error) {
+						return callback(error, null);
 					}
-				);
+					return callback(null, result);
+				});
 			}
 		});
 	},
@@ -250,20 +224,19 @@ let Chart = {
 			if (err) {
 				return callback(err, null);
 			} else {
-				const sql =
-					"SELECT click_times, name FROM product";
+				const sql = "SELECT click_times, name FROM product";
 				conn.query(sql, (error, result) => {
 					conn.end();
 					if (error) {
 						return callback(error, null);
 					} else {
 						let clickTimes = [];
-						for(let i = 0; i < result.length; i++) {
+						for (let i = 0; i < result.length; i++) {
 							clickTimes.push(result[i].click_times);
 						}
 
 						let labels = [];
-						for(let i = 0; i < result.length; i++) {
+						for (let i = 0; i < result.length; i++) {
 							labels.push(result[i].name);
 						}
 
@@ -271,14 +244,14 @@ let Chart = {
 						backgroundColors = randomColor({
 							count: labels.length,
 							format: "rgb",
-							hue: "blue"
+							hue: "blue",
 						});
 
 						let borderColors = [];
 						borderColors = randomColor({
 							count: labels.length,
 							format: "rgb",
-							hue: "green"
+							hue: "green",
 						});
 
 						//----------------------------------------
@@ -286,23 +259,25 @@ let Chart = {
 						//----------------------------------------
 						(async () => {
 							let configuration = {
-								type: 'bar',
+								type: "bar",
 								data: {
 									labels: [],
-									datasets: [{
-									  label: "Product click times chart",
-									  data: [],
-									  backgroundColor: [],
-									  borderColor: [],
-									  borderWidth: 1
-									}]
+									datasets: [
+										{
+											label: "Product click times chart",
+											data: [],
+											backgroundColor: [],
+											borderColor: [],
+											borderWidth: 1,
+										},
+									],
 								},
 								options: {
-								  scales: {
-									y: {
-									  beginAtZero: true
-									}
-								  }
+									scales: {
+										y: {
+											beginAtZero: true,
+										},
+									},
 								},
 							};
 
@@ -312,29 +287,18 @@ let Chart = {
 							configuration.data.datasets[0].backgroundColor = backgroundColors;
 							configuration.data.datasets[0].borderColor = borderColors;
 
-							let imageBuffer =
-								await chartJSNodeCanvas.renderToBuffer(
-									configuration
-								);
-							filename =
-								new Date()
-									.toISOString()
-									.replace(/:/g, "-") +
-								" - " +
-								"barChart.PNG";
+							let imageBuffer = await chartJSNodeCanvas.renderToBuffer(configuration);
+							filename = new Date().toISOString().replace(/:/g, "-") + " - " + "barChart.PNG";
 
 							// Write image to file
-							fs.writeFileSync(
-								`./charts/${filename}`,
-								imageBuffer
-							);
+							fs.writeFileSync(`./charts/${filename}`, imageBuffer);
 							return callback(null, [result, filename]);
 						})();
 					}
 				});
 			}
 		});
-	}
+	},
 };
 
 //----------------------------------------
