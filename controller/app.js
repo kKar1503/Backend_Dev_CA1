@@ -667,7 +667,7 @@ app.get("/product/chart/:productCateID", function (req, res) {
 	}
 });
 
-// GET line chart for click times of a specific product [working]
+// GET line chart for click times of a specific product [Done]
 // http://localhost:3000/product/chart
 app.get("/product/chart/lineChart/chart", function (req, res) {
 	if (
