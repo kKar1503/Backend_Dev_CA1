@@ -643,7 +643,7 @@ app.get("/product/chart/:productCateID", function (req, res) {
 			return;
 		}
 	
-		Chart.getBarChart(productCateID, function (err, result) {
+		Chart.priComparChart(productCateID, function (err, result) {
 			if (!err) {
 				// no internal error
 				if (result.length == 0) {
@@ -675,7 +675,7 @@ app.get("/product/chart/lineChart/chart", function (req, res) {
 		req.get("KEY") == process.env.API_KEY_2 ||
 		req.get("KEY") == process.env.API_KEY_3
 	) {
-		Chart.getLineChart(function (err, result) {
+		Chart.clickTimesChart(function (err, result) {
 			if (!err) {
 				// no internal error
 				if (result.length == 0) {

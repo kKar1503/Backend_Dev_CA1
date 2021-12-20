@@ -127,7 +127,7 @@ let Chart = {
 		});
 	},
 
-	getBarChart: function (productCateID, callback) {
+	priComparChart: function (productCateID, callback) {
 		var conn = db.getConnection();
 		conn.connect(function (err) {
 			if (err) {
@@ -244,14 +244,14 @@ let Chart = {
 		});
 	},
 
-	getLineChart: function (callback) {
+	clickTimesChart: function (callback) {
 		var conn = db.getConnection();
 		conn.connect(function (err) {
 			if (err) {
 				return callback(err, null);
 			} else {
 				const sql =
-					"SELECT clickTimes, name FROM product";
+					"SELECT click_times, name FROM product";
 				conn.query(sql, (error, result) => {
 					conn.end();
 					if (error) {
@@ -259,19 +259,26 @@ let Chart = {
 					} else {
 						let clickTimes = [];
 						for(let i = 0; i < result.length; i++) {
-							clickTimes.push(result[i].clickTimes);
+							clickTimes.push(result[i].click_times);
 						}
-						console.log(clickTimes);
+
 						let labels = [];
 						for(let i = 0; i < result.length; i++) {
 							labels.push(result[i].name);
 						}
-						console.log(labels);
+
+						let backgroundColors = [];
+						backgroundColors = randomColor({
+							count: labels.length,
+							format: "rgb",
+							hue: "blue"
+						});
+
 						let borderColors = [];
 						borderColors = randomColor({
 							count: labels.length,
 							format: "rgb",
-							hue: "blue"
+							hue: "green"
 						});
 
 						//----------------------------------------
@@ -279,22 +286,30 @@ let Chart = {
 						//----------------------------------------
 						(async () => {
 							let configuration = {
-								type: 'line',
+								type: 'bar',
 								data: {
 									labels: [],
 									datasets: [{
-									  label: "Line chart for products click times",
+									  label: "Product click times chart",
 									  data: [],
-									  fill: false,
-									  borderColor:'',
-									  tension: 0.1
+									  backgroundColor: [],
+									  borderColor: [],
+									  borderWidth: 1
 									}]
+								},
+								options: {
+								  scales: {
+									y: {
+									  beginAtZero: true
+									}
 								  }
+								},
 							};
 
 							// build the configuration
 							configuration.data.datasets[0].data = clickTimes;
 							configuration.data.labels = labels;
+							configuration.data.datasets[0].backgroundColor = backgroundColors;
 							configuration.data.datasets[0].borderColor = borderColors;
 
 							let imageBuffer =
