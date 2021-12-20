@@ -699,6 +699,39 @@ app.get("/product/chart/lineChart/chart", function (req, res) {
 	}
 });
 
+// Delete the charts [Done]
+// http://localhost:3000/chart
+app.delete("/chart", function (req, res) {
+	if (
+		req.get("KEY") == process.env.API_KEY_1 ||
+		req.get("KEY") == process.env.API_KEY_2 ||
+		req.get("KEY") == process.env.API_KEY_3
+	) {
+		fs.readdir("./charts", (err, files) => {
+			if (err)
+			  console.log(err);
+			else {
+				for(let i = 0; i < files.length; i++) {
+					fs.unlinkSync(`./charts/${files[i]}`);
+				}
+				fs.readdir("./charts", (err, files) => { // check if there still get exist charts
+					if (err)
+					  console.log(err);
+					else {
+						if(files.length == 0) {
+							res.status(200).send("Charts deleted!")
+						} else {
+							res.status(500).send("Cannot delete charts"); 
+						}
+					}
+				})
+			}
+		});
+	} else {
+		errLog(req, null, "Not authorized");
+		res.status(401).send("You are not authorized!");
+	}
+});
 // End of charts Endpoints
 //----------------------------------------
 
