@@ -368,7 +368,11 @@ app.get("/product/:id", function (req, res) {
 						errLog(req, err, "Product click times cannot update!");
 						res.status(500).send(); // Unknown error
 					} else {
-						actLog(req, result, "Product click times update successfully!");
+						actLog(
+							req,
+							result,
+							"Product click times update successfully!"
+						);
 					}
 				});
 
@@ -635,16 +639,16 @@ app.get("/product/chart/:productCateID", function (req, res) {
 			res.status(400).send("Invalid input");
 			return;
 		}
-	
+
 		Chart.priComparChart(productCateID, function (err, result) {
 			if (!err) {
 				// no internal error
 				if (result.length == 0) {
-					actLog(req, result[0],"No product in this category");
+					actLog(req, result[0], "No product in this category");
 					res.status(404).send("No product in this category");
 				} else {
 					actLog(req, result[0], "GET price comparision bar chart");
-					console.log(result[1]);// result[1] is the image generated time
+					console.log(result[1]); // result[1] is the image generated time
 					res.status(200).sendFile(`charts/${result[1]}`, {
 						root: "./",
 					});
@@ -672,11 +676,15 @@ app.get("/product/chart/lineChart/chart", function (req, res) {
 			if (!err) {
 				// no internal error
 				if (result.length == 0) {
-					actLog(req, result[0],"No products");
+					actLog(req, result[0], "No products");
 					res.status(404).send("No products");
 				} else {
-					actLog(req, result[0], "GET click times line chart for products");
-					console.log(result[1]);// result[1] is the image generated time
+					actLog(
+						req,
+						result[0],
+						"GET click times line chart for products"
+					);
+					console.log(result[1]); // result[1] is the image generated time
 					res.status(200).sendFile(`charts/${result[1]}`, {
 						root: "./",
 					});
@@ -702,24 +710,25 @@ app.delete("/chart", function (req, res) {
 	) {
 		fs.readdir("./charts", (err, files) => {
 			if (err) {
-			  console.log(err);
-			  res.status(500).send("Cannot delete charts"); 
+				console.log(err);
+				res.status(500).send("Cannot delete charts");
 			} else {
-				for(let i = 0; i < files.length; i++) {
+				for (let i = 0; i < files.length; i++) {
 					fs.unlinkSync(`./charts/${files[i]}`);
 				}
-				fs.readdir("./charts", (err, files) => { // check if there still get exist charts
+				fs.readdir("./charts", (err, files) => {
+					// check if there still get exist charts
 					if (err) {
 						console.log(err);
-						res.status(500).send("Cannot delete charts"); 
+						res.status(500).send("Cannot delete charts");
 					} else {
-						if(files.length == 0) {
-							res.status(200).send("Charts deleted!")
+						if (files.length == 0) {
+							res.status(200).send("Charts deleted!");
 						} else {
-							res.status(500).send("Cannot delete charts"); 
+							res.status(500).send("Cannot delete charts");
 						}
 					}
-				})
+				});
 			}
 		});
 	} else {
