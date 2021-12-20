@@ -216,7 +216,110 @@ let Chart = {
 				});
 			}
 		});
-	}
+	},
+
+	updateProDB: function (productID, callback) {
+		var dbConn = db.getConnection();
+		dbConn.connect(function (err) {
+			if (err) {
+				return callback(err, null);
+			} else {
+				const sql = `
+							UPDATE 
+								product 
+							SET 
+								clickTimes = clickTimes + 1
+							WHERE
+								productid = ?;`;
+				dbConn.query(
+					sql, [productID], (error, result) => {
+						dbConn.end();
+						if (error) {
+							return callback(error, null);
+						}
+						return callback(null, result);
+					}
+				);
+			}
+		});
+	},
+
+	getLineChart: function (callback) {
+		var conn = db.getConnection();
+		conn.connect(function (err) {
+			if (err) {
+				return callback(err, null);
+			} else {
+				const sql =
+					"SELECT clickTimes, name FROM product";
+				conn.query(sql, (error, result) => {
+					conn.end();
+					if (error) {
+						return callback(error, null);
+					} else {
+						let clickTimes = [];
+						for(let i = 0; i < result.length; i++) {
+							clickTimes.push(result[i].clickTimes);
+						}
+						console.log(clickTimes);
+						let labels = [];
+						for(let i = 0; i < result.length; i++) {
+							labels.push(result[i].name);
+						}
+						console.log(labels);
+						let borderColors = [];
+						borderColors = randomColor({
+							count: labels.length,
+							format: "rgb",
+							hue: "blue"
+						});
+
+						//----------------------------------------
+						// Configuration and set up for pie chart (interest category)
+						//----------------------------------------
+						(async () => {
+							let configuration = {
+								type: 'line',
+								data: {
+									labels: [],
+									datasets: [{
+									  label: "Line chart for products click times",
+									  data: [],
+									  fill: false,
+									  borderColor:'',
+									  tension: 0.1
+									}]
+								  }
+							};
+
+							// build the configuration
+							configuration.data.datasets[0].data = clickTimes;
+							configuration.data.labels = labels;
+							configuration.data.datasets[0].borderColor = borderColors;
+
+							let imageBuffer =
+								await chartJSNodeCanvas.renderToBuffer(
+									configuration
+								);
+							filename =
+								new Date()
+									.toISOString()
+									.replace(/:/g, "-") +
+								" - " +
+								"barChart.PNG";
+
+							// Write image to file
+							fs.writeFileSync(
+								`./charts/${filename}`,
+								imageBuffer
+							);
+							return callback(null, [result, filename]);
+						})();
+					}
+				});
+			}
+		});
+	},
 };
 
 //----------------------------------------
