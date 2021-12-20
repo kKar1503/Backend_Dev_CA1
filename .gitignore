@@ -15,3 +15,6 @@ node_modules
 
 # Ignore all uploaded files in ./uploads
 uploads/*
+
+# Ignore charts folder
+charts/*

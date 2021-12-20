@@ -10,28 +10,12 @@
 // Imports
 //----------------------------------------
 const db = require("./databaseConfig.js");
-
-//----------------------------------------
-// Configuration and set up for pie chart (interest category)
-//----------------------------------------
-
-const pieData = {
-	labels: [], // category name (use join table)
-
-	datasets: [
-		{
-			label: "Pie_chart",
-			data: [],
-			backgroundColor: "rgb(255,255,255)", // search for npm library for random colour generator
-			hoverOffset: 4,
-		},
-	],
-};
-
-const pieChart = {
-	type: "pie",
-	data: pieData,
-};
+const fs = require("fs");
+const { ChartJSNodeCanvas } = require("chartjs-node-canvas");
+var randomColor = require("randomcolor"); // import the script
+const width = 400; //px
+const height = 400; //px
+const chartJSNodeCanvas = new ChartJSNodeCanvas({ width, height });
 
 //-------------------------------------
 
@@ -47,89 +31,310 @@ let Chart = {
 			} else {
 				console.log("Connection established!");
 
-				var sql = "SELECT fk_category_id FROM interest"; // sql to change to a join table query with category table to get category name
-				conn.query(sql, function (err, result) {
-					conn.end();
+				var interestSQL = "SELECT fk_category_id FROM interest"; // sql to change to a join table query with category table to get category name
+				conn.query(interestSQL, function (err, result) {
 					if (err) {
+						conn.end();
 						return callback(err, null);
 					} else {
-						let countCate1 = 0,
-							countCate2 = 0,
-							countCate3 = 0,
-							countCate4 = 0,
-							countCate5 = 0,
-							countCate6 = 0; // change to array for dynamic
+						// create and initialize the countCate and labels array
+						let highest = result[0].fk_category_id;
 						for (let i = 0; i < result.length; i++) {
-							switch (
-								result[i].fk_category_id // don't need to use switch case.
-							) {
-								case 1:
-									countCate1++;
-									break;
-								case 2:
-									countCate2++;
-									break;
-								case 3:
-									countCate3++;
-									break;
-								case 4:
-									countCate4++;
-									break;
-								case 5:
-									countCate5++;
-									break;
-								case 6:
-									countCate6++;
-									break;
+							if (result[i].fk_category_id > highest) {
+								highest = result[i].fk_category_id;
 							}
 						}
-						result = [
-							countCate1,
-							countCate2,
-							countCate3,
-							countCate4,
-							countCate5,
-							countCate6,
-						];
-						for (let i = 0; i < result.length; i++) {
-							pieData.datasets[0].data[i] = result[i];
+
+						let countCate = [];
+						for (let i = 0; i < highest; i++) {
+							countCate.push(0);
 						}
-						result = pieChart;
-						return callback(null, result);
+
+						for (let i = 0; i < result.length; i++) {
+							countCate[result[i].fk_category_id - 1] += 1;
+						}
+						// create and initialize labels array
+						let labels = [];
+
+						var categorySQL =
+							"SELECT DISTINCT category FROM category"; // sql to change to a join table query with category table to get category name
+						conn.query(categorySQL, function (err, result) {
+							conn.end();
+							if (err) {
+								return callback(err, null);
+							} else {
+								for (let i = 0; i < result.length; i++) {
+									labels.push(result[i].category + " (" + countCate[i] + ")");
+								}
+								let colors = [];
+								colors = randomColor({
+									count: labels.length,
+									format: "rgb",
+									hue: "blue"
+								});
+                                
+								let filename;
+								//----------------------------------------
+								// Configuration and set up for pie chart (interest category)
+								//----------------------------------------
+								(async () => {
+									let configuration = {
+										type: "pie",
+										data: {
+											labels: [],
+
+											datasets: [
+												{
+													label: "Pie_chart",
+													data: [],
+													backgroundColor: [],
+													hoverOffset: 4,
+												},
+											],
+										},
+									};
+
+									// build the configuration
+									configuration.data.datasets[0].data =
+										countCate;
+									configuration.data.labels = labels;
+									configuration.data.datasets[0].backgroundColor =
+										colors;
+
+									let imageBuffer =
+										await chartJSNodeCanvas.renderToBuffer(
+											configuration
+										);
+									filename =
+										new Date()
+											.toISOString()
+											.replace(/:/g, "-") +
+										" - " +
+										"pieChart.PNG";
+
+									// Write image to file
+									fs.writeFileSync(
+										`./charts/${filename}`,
+										imageBuffer
+									);
+									return callback(null, [result, filename]);
+								})();
+							}
+						});
 					}
 				});
 			}
 		});
 	},
 
-	// addCat: function (cat, callback) {
-	// 	var conn = db.getConnection();
-	// 	conn.connect(function (err) {
-	// 		if (err) {
-	// 			return callback(err, null);
-	// 		} else {
-	// 			console.log("Connection established!");
-	// 			const sql = `
-	//                        INSERT INTO
-	//                             category(category, description)
-	//                        VALUES
-	//                             (?, ?)
-	//                        `;
-	// 			conn.query(
-	// 				sql,
-	// 				[cat.category, cat.description],
-	// 				(error, result) => {
-	// 					conn.end();
-	// 					if (error) {
-	// 						return callback(error, null);
-	// 					} else {
-	// 						return callback(null, result);
-	// 					}
-	// 				}
-	// 			);
-	// 		}
-	// 	});
-	// },
+	priComparChart: function (productCateID, callback) {
+		var conn = db.getConnection();
+		conn.connect(function (err) {
+			if (err) {
+				return callback(err, null);
+			} else {
+				const sql =
+					"SELECT name, price FROM product WHERE categoryid = ?";
+				conn.query(sql, [productCateID], (error, result) => {
+					conn.end();
+					if (error) {
+						return callback(error, null);
+					} else {
+						let prices = [];
+						for(let i = 0; i < result.length; i++) {
+							prices.push(result[i].price);
+						}
+
+						let labels = [];
+						for(let i = 0; i < result.length; i++) {
+							labels.push(result[i].name);
+						}
+
+						let backgroundColors = [];
+						backgroundColors = randomColor({
+							count: labels.length,
+							format: "rgb",
+							hue: "blue"
+						});
+
+						let borderColors = [];
+						borderColors = randomColor({
+							count: labels.length,
+							format: "rgb",
+							hue: "green"
+						});
+						//----------------------------------------
+						// Configuration and set up for pie chart (interest category)
+						//----------------------------------------
+						(async () => {
+							let configuration = {
+								type: 'bar',
+								data: {
+									labels: [],
+									datasets: [{
+									  label: 'Price Comparison bar chart for category ' + productCateID,
+									  data: [],
+									  backgroundColor: [],
+									  borderColor: [],
+									  borderWidth: 1
+									}]
+								},
+								options: {
+								  scales: {
+									y: {
+									  beginAtZero: true
+									}
+								  }
+								},
+							};
+
+							// build the configuration
+							configuration.data.datasets[0].data = prices;
+							configuration.data.labels = labels;
+							configuration.data.datasets[0].backgroundColor = backgroundColors;
+							configuration.data.datasets[0].borderColor = borderColors;
+
+							let imageBuffer =
+								await chartJSNodeCanvas.renderToBuffer(
+									configuration
+								);
+							filename =
+								new Date()
+									.toISOString()
+									.replace(/:/g, "-") +
+								" - " +
+								"barChart.PNG";
+
+							// Write image to file
+							fs.writeFileSync(
+								`./charts/${filename}`,
+								imageBuffer
+							);
+							return callback(null, [result, filename]);
+						})();
+					}
+				});
+			}
+		});
+	},
+
+	updateProDB: function (productID, callback) {
+		var dbConn = db.getConnection();
+		dbConn.connect(function (err) {
+			if (err) {
+				return callback(err, null);
+			} else {
+				const sql = `
+							UPDATE 
+								product 
+							SET 
+								clickTimes = clickTimes + 1
+							WHERE
+								productid = ?;`;
+				dbConn.query(
+					sql, [productID], (error, result) => {
+						dbConn.end();
+						if (error) {
+							return callback(error, null);
+						}
+						return callback(null, result);
+					}
+				);
+			}
+		});
+	},
+
+	clickTimesChart: function (callback) {
+		var conn = db.getConnection();
+		conn.connect(function (err) {
+			if (err) {
+				return callback(err, null);
+			} else {
+				const sql =
+					"SELECT click_times, name FROM product";
+				conn.query(sql, (error, result) => {
+					conn.end();
+					if (error) {
+						return callback(error, null);
+					} else {
+						let clickTimes = [];
+						for(let i = 0; i < result.length; i++) {
+							clickTimes.push(result[i].click_times);
+						}
+
+						let labels = [];
+						for(let i = 0; i < result.length; i++) {
+							labels.push(result[i].name);
+						}
+
+						let backgroundColors = [];
+						backgroundColors = randomColor({
+							count: labels.length,
+							format: "rgb",
+							hue: "blue"
+						});
+
+						let borderColors = [];
+						borderColors = randomColor({
+							count: labels.length,
+							format: "rgb",
+							hue: "green"
+						});
+
+						//----------------------------------------
+						// Configuration and set up for pie chart (interest category)
+						//----------------------------------------
+						(async () => {
+							let configuration = {
+								type: 'bar',
+								data: {
+									labels: [],
+									datasets: [{
+									  label: "Product click times chart",
+									  data: [],
+									  backgroundColor: [],
+									  borderColor: [],
+									  borderWidth: 1
+									}]
+								},
+								options: {
+								  scales: {
+									y: {
+									  beginAtZero: true
+									}
+								  }
+								},
+							};
+
+							// build the configuration
+							configuration.data.datasets[0].data = clickTimes;
+							configuration.data.labels = labels;
+							configuration.data.datasets[0].backgroundColor = backgroundColors;
+							configuration.data.datasets[0].borderColor = borderColors;
+
+							let imageBuffer =
+								await chartJSNodeCanvas.renderToBuffer(
+									configuration
+								);
+							filename =
+								new Date()
+									.toISOString()
+									.replace(/:/g, "-") +
+								" - " +
+								"barChart.PNG";
+
+							// Write image to file
+							fs.writeFileSync(
+								`./charts/${filename}`,
+								imageBuffer
+							);
+							return callback(null, [result, filename]);
+						})();
+					}
+				});
+			}
+		});
+	}
 };
 
 //----------------------------------------
