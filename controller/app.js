@@ -53,9 +53,7 @@ function actLog(req, result, note = "") {
 	logger.log(
 		`[Request from: ${req.ip}]\n[Timestamp: ${timestamp}]\nRequest Type: ${
 			req.method
-		}\nRequest Made: ${JSON.stringify(
-			req.body
-		)}\nOutput: ${note}\n${JSON.stringify(result)}\n`
+		}\nRequest Made: ${JSON.stringify(req.body)}\nOutput: ${note}\n${JSON.stringify(result)}\n`
 	);
 }
 
@@ -84,9 +82,7 @@ function errLog(req, err, note = "") {
 	logger.error(
 		`[Request from: ${req.ip}]\n[Timestamp: ${timestamp}]\nRequest Type: ${
 			req.method
-		}\nRequest Made: ${JSON.stringify(
-			req.body
-		)}\nOutput: ${note}\n${JSON.stringify(err)}\n`
+		}\nRequest Made: ${JSON.stringify(req.body)}\nOutput: ${note}\n${JSON.stringify(err)}\n`
 	);
 }
 
@@ -98,26 +94,16 @@ const storage = multer.diskStorage({
 		callback(null, "./uploads/");
 	},
 	filename: function (req, file, callback) {
-		callback(
-			null,
-			new Date().toISOString().replace(/:/g, "-") + file.originalname
-		);
+		callback(null, new Date().toISOString().replace(/:/g, "-") + file.originalname);
 	},
 });
 const fileFilter = (req, file, callback) => {
 	// Reject a File
-	if (
-		file.mimetype === "image/jpeg" ||
-		file.mimetype === "image/png" ||
-		file.mimetype === "image/jpg"
-	) {
+	if (file.mimetype === "image/jpeg" || file.mimetype === "image/png" || file.mimetype === "image/jpg") {
 		// Limit to JPG/JPEG/PNG
 		callback(null, true);
 	} else {
-		callback(
-			new Error("Filetype Mismatched (Only accepts JPEG/JPG/PNG)"),
-			false
-		);
+		callback(new Error("Filetype Mismatched (Only accepts JPEG/JPG/PNG)"), false);
 	}
 };
 const upload = multer({
@@ -255,14 +241,8 @@ app.put("/users/:id", function (req, res) {
 				actLog(req, result, "User is updated!");
 				res.status(204).send();
 			} else {
-				actLog(
-					req,
-					result,
-					"Existing row is set to its current values"
-				);
-				res.status(200).send(
-					"Existing row is set to its current values"
-				); // No changes as the changed info is same as previous one(existing row is set to its current values)
+				actLog(req, result, "Existing row is set to its current values");
+				res.status(200).send("Existing row is set to its current values"); // No changes as the changed info is same as previous one(existing row is set to its current values)
 			}
 		}
 	});
@@ -334,9 +314,7 @@ app.post("/product", function (req, res) {
 			}
 		} else {
 			actLog(req, result, "New product added");
-			res.status(201).send(
-				`ID of the newly created listing: \n{\n"productid": ${result.insertId}\n}`
-			);
+			res.status(201).send(`ID of the newly created listing: \n{\n"productid": ${result.insertId}\n}`);
 		}
 	});
 });
@@ -368,18 +346,12 @@ app.get("/product/:id", function (req, res) {
 						errLog(req, err, "Product click times cannot update!");
 						res.status(500).send(); // Unknown error
 					} else {
-						actLog(
-							req,
-							result,
-							"Product click times update successfully!"
-						);
+						actLog(req, result, "Product click times update successfully!");
 					}
 				});
 
 				res.status(200).send(
-					`Info of the matching product (including category name):\n ${JSON.stringify(
-						result
-					)}`
+					`Info of the matching product (including category name):\n ${JSON.stringify(result)}`
 				);
 			}
 		}
@@ -511,8 +483,8 @@ app.post("/interest/:userid", function (req, res) {
 //----------------------------------------
 // Start of Image Upload Endpoints
 
-// POST New image
-// http://localhost:3000/upload
+// GET Product Image
+// http://localhost:3000/product/image/:productID
 app.get("/product/image/:productID", (req, res) => {
 	let productID = parseInt(req.params.productID);
 	Image.get(productID, function (err, result) {
@@ -523,9 +495,7 @@ app.get("/product/image/:productID", (req, res) => {
 			});
 		} else if (err.message == "NoProductFound") {
 			errLog(req, err, "Image GET No Product in DB");
-			res.status(404).send(
-				`No product in database with ID = ${productID}`
-			);
+			res.status(404).send(`No product in database with ID = ${productID}`);
 		} else if (err.message == "NoImage") {
 			errLog(req, err, "Image GET No Image in DB");
 			res.status(404).send(`No image in database for ${result}`);
@@ -536,6 +506,8 @@ app.get("/product/image/:productID", (req, res) => {
 	});
 });
 
+// PUT Product Image
+// http://localhost:3000/product/image/:productID
 app.put("/product/image/:productID", authenticateToken, (req, res) => {
 	let productID = parseInt(req.params.productID);
 	let overwrite;
@@ -548,9 +520,7 @@ app.put("/product/image/:productID", authenticateToken, (req, res) => {
 		if (err instanceof multer.MulterError) {
 			errLog(req, err, "Multer Error");
 			if (err.message == "File too large") {
-				res.status(406).send(
-					`Upload Error: ${err.message} (Only accepts up to 1MB)`
-				); // File too large
+				res.status(406).send(`Upload Error: ${err.message} (Only accepts up to 1MB)`); // File too large
 			} else {
 				res.status(406).send(`Upload Error: ${err.message}`); // Multer Error
 			}
@@ -558,31 +528,22 @@ app.put("/product/image/:productID", authenticateToken, (req, res) => {
 			errLog(req, err, "Non-Multer Error from Multer");
 			res.status(406).send(`Upload Error: ${err.message}`); // Filetype Mismatched
 		} else {
-			Image.update(
-				req.file.filename,
-				productID,
-				overwrite,
-				function (err, result) {
-					if (!err) {
-						actLog(req.file, result, "Image updated");
-						res.status(200).end(); // Image Updated
-					} else if (err.message == "Existing File") {
-						errLog(
-							req.file,
-							err,
-							"Existing Image in Database during Image PUT Request"
-						);
-						fs.unlinkSync(`./uploads/${req.file.filename}`);
-						res.status(422).send(
-							`Existing Image in Database for ${result.name}.\nTo overwrite system file, add query "overwrite=1"`
-						);
-					} else {
-						errLog(req.file, err, "Image update failed");
-						fs.unlinkSync(`./uploads/${req.file.filename}`);
-						res.status(500).send(); // Image update failed
-					}
+			Image.update(req.file.filename, productID, overwrite, function (err, result) {
+				if (!err) {
+					actLog(req.file, result, "Image updated");
+					res.status(200).end(); // Image Updated
+				} else if (err.message == "Existing File") {
+					errLog(req.file, err, "Existing Image in Database during Image PUT Request");
+					fs.unlinkSync(`./uploads/${req.file.filename}`);
+					res.status(422).send(
+						`Existing Image in Database for ${result.name}.\nTo overwrite system file, add query "overwrite=1"`
+					);
+				} else {
+					errLog(req.file, err, "Image update failed");
+					fs.unlinkSync(`./uploads/${req.file.filename}`);
+					res.status(500).send(); // Image update failed
 				}
-			);
+			});
 		}
 	});
 });
@@ -594,147 +555,107 @@ app.put("/product/image/:productID", authenticateToken, (req, res) => {
 // Start of charts Endpoints
 
 // GET interest chart [Done]
-// http://localhost:3000/interest/chart
-app.get("/interest/chart", function (req, res) {
-	if (
-		req.get("KEY") == process.env.API_KEY_1 ||
-		req.get("KEY") == process.env.API_KEY_2 ||
-		req.get("KEY") == process.env.API_KEY_3
-	) {
-		Chart.getInterChart(function (err, result) {
-			if (!err) {
-				// no internal error
-				if (result.length == 0) {
-					actLog(req, result[0], "Interest database is empty");
-					res.status(404).send("Interest database is empty");
-				} else {
-					actLog(req, result[0], "GET interest pie chart");
-					console.log(result[1]);
-					res.status(200).sendFile(`charts/${result[1]}`, {
-						root: "./",
-					});
-				}
+// http://localhost:3000/charts/interest
+app.get("/charts/interest", authenticateToken, function (req, res) {
+	Chart.getInterChart(function (err, result) {
+		if (!err) {
+			// no internal error
+			if (result.length == 0) {
+				actLog(req, result[0], "Interest database is empty");
+				res.status(404).send("Interest database is empty");
 			} else {
-				errLog(req, err, "GET interest pie chart");
-				res.status(500).end(); // internal error
+				actLog(req, result[0], "GET interest pie chart");
+				console.log(result[1]);
+				res.status(200).sendFile(`charts/${result[1]}`, {
+					root: "./",
+				});
 			}
-		});
-	} else {
-		errLog(req, null, "Not authorized");
-		res.status(401).send("You are not authorized!");
-	}
+		} else {
+			errLog(req, err, "GET interest pie chart");
+			res.status(500).end(); // internal error
+		}
+	});
 });
 
 // GET price comparison chart for a specific category [Done]
-// http://localhost:3000/product/chart/:productCateID
-app.get("/product/chart/:productCateID", function (req, res) {
-	if (
-		req.get("KEY") == process.env.API_KEY_1 ||
-		req.get("KEY") == process.env.API_KEY_2 ||
-		req.get("KEY") == process.env.API_KEY_3
-	) {
-		const productCateID = parseInt(req.params.productCateID);
-		if (isNaN(productCateID)) {
-			console.log("Input product id is NaN!");
-			res.status(400).send("Invalid input");
-			return;
-		}
-
-		Chart.priComparChart(productCateID, function (err, result) {
-			if (!err) {
-				// no internal error
-				if (result.length == 0) {
-					actLog(req, result[0], "No product in this category");
-					res.status(404).send("No product in this category");
-				} else {
-					actLog(req, result[0], "GET price comparision bar chart");
-					console.log(result[1]); // result[1] is the image generated time
-					res.status(200).sendFile(`charts/${result[1]}`, {
-						root: "./",
-					});
-				}
-			} else {
-				errLog(req, err, "GET price comparision bar chart");
-				res.status(500).end(); // internal error
-			}
-		});
-	} else {
-		errLog(req, null, "Not authorized");
-		res.status(401).send("You are not authorized!");
+// http://localhost:3000/charts/prices/:catID
+app.get("/charts/prices/:catID", authenticateToken, function (req, res) {
+	const catID = parseInt(req.params.catID);
+	if (isNaN(catID)) {
+		console.log("Input product id is NaN!");
+		res.status(400).send("Invalid input");
+		return;
 	}
+
+	Chart.priComparChart(catID, function (err, result) {
+		if (!err) {
+			// no internal error
+			if (result.length == 0) {
+				actLog(req, result[0], "No product in this category");
+				res.status(404).send("No product in this category");
+			} else {
+				actLog(req, result[0], "GET price comparision bar chart");
+				console.log(result[1]); // result[1] is the image generated time
+				res.status(200).sendFile(`charts/${result[1]}`, {
+					root: "./",
+				});
+			}
+		} else {
+			errLog(req, err, "GET price comparision bar chart");
+			res.status(500).end(); // internal error
+		}
+	});
 });
 
 // GET line chart for click times of a specific product [Done]
-// http://localhost:3000/lineChart/chart
-app.get("/product/chart/lineChart/chart", function (req, res) {
-	if (
-		req.get("KEY") == process.env.API_KEY_1 ||
-		req.get("KEY") == process.env.API_KEY_2 ||
-		req.get("KEY") == process.env.API_KEY_3
-	) {
-		Chart.clickTimesChart(function (err, result) {
-			if (!err) {
-				// no internal error
-				if (result.length == 0) {
-					actLog(req, result[0], "No products");
-					res.status(404).send("No products");
-				} else {
-					actLog(
-						req,
-						result[0],
-						"GET click times line chart for products"
-					);
-					console.log(result[1]); // result[1] is the image generated time
-					res.status(200).sendFile(`charts/${result[1]}`, {
-						root: "./",
-					});
-				}
+// http://localhost:3000/charts/click
+app.get("/charts/click", authenticateToken, function (req, res) {
+	Chart.clickTimesChart(function (err, result) {
+		if (!err) {
+			// no internal error
+			if (result.length == 0) {
+				actLog(req, result[0], "No products");
+				res.status(404).send("No products");
 			} else {
-				errLog(req, err, "GET clcik times line chart");
-				res.status(500).end(); // internal error
+				actLog(req, result[0], "GET click times line chart for products");
+				console.log(result[1]); // result[1] is the image generated time
+				res.status(200).sendFile(`charts/${result[1]}`, {
+					root: "./",
+				});
 			}
-		});
-	} else {
-		errLog(req, null, "Not authorized");
-		res.status(401).send("You are not authorized!");
-	}
+		} else {
+			errLog(req, err, "GET clcik times line chart");
+			res.status(500).end(); // internal error
+		}
+	});
 });
 
 // Delete the charts [Done]
-// http://localhost:3000/chart
-app.delete("/chart", function (req, res) {
-	if (
-		req.get("KEY") == process.env.API_KEY_1 ||
-		req.get("KEY") == process.env.API_KEY_2 ||
-		req.get("KEY") == process.env.API_KEY_3
-	) {
-		fs.readdir("./charts", (err, files) => {
-			if (err) {
-				console.log(err);
-				res.status(500).send("Cannot delete charts");
-			} else {
-				for (let i = 0; i < files.length; i++) {
-					fs.unlinkSync(`./charts/${files[i]}`);
-				}
-				fs.readdir("./charts", (err, files) => {
-					// check if there still get exist charts
-					if (err) {
-						console.log(err);
-						res.status(500).send("Cannot delete charts");
-					} else {
-						if (files.length == 0) {
-							res.status(200).send("Charts deleted!");
-						} else {
-							res.status(500).send("Cannot delete charts");
-						}
-					}
-				});
+// http://localhost:3000/charts
+app.delete("/charts", authenticateToken, function (req, res) {
+	fs.readdir("./charts", (err, files) => {
+		if (err) {
+			console.log(err);
+			res.status(500).send("Cannot delete charts");
+		} else {
+			for (let i = 0; i < files.length; i++) {
+				fs.unlinkSync(`./charts/${files[i]}`);
 			}
-		});
-	} else {
-		errLog(req, null, "Not authorized");
-		res.status(401).send("You are not authorized!");
-	}
+			fs.readdir("./charts", (err, files) => {
+				// check if there still get exist charts
+				if (err) {
+					console.log(err);
+					res.status(500).send("Cannot delete charts");
+				} else {
+					if (files.length == 0) {
+						res.status(200).send("Charts deleted!");
+					} else {
+						res.status(500).send("Cannot delete charts");
+					}
+				}
+			});
+		}
+	});
 });
 // End of charts Endpoints
 //----------------------------------------
@@ -757,9 +678,7 @@ app.post("/login", function (req, res) {
 		} else if (result[0].password != loginData.pass) {
 			res.status(401).send("Invalid Password!");
 		} else if (result[0].type == "Customer") {
-			res.status(403).send(
-				"You are not allowed to access Admin API Keys."
-			);
+			res.status(403).send("You are not allowed to access Admin API Keys.");
 		} else {
 			delete loginData.pass;
 			let accessToken;
