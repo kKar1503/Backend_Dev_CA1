@@ -539,15 +539,25 @@ app.put("/product/image/:productID", authenticateToken, (req, res) => {
 				if (!err) {
 					actLog(req.file, result, "Image updated");
 					res.status(200).end(); // Image Updated
-				} else if (err.message == "Existing File") {
+				} else if (err.message == "InvalidProductID") {
+					errLog(req.file, err, "Image PUT Request for invalid Product ID");
+					if (fs.existsSync(`./uploads/${req.file.filename}`)) {
+						fs.unlinkSync(`./uploads/${req.file.filename}`);
+					}
+					res.status(500).send(`No such product with ID = ${productID} in Database`);
+				} else if (err.message == "ExistingFile") {
 					errLog(req.file, err, "Existing Image in Database during Image PUT Request");
-					fs.unlinkSync(`./uploads/${req.file.filename}`);
+					if (fs.existsSync(`./uploads/${req.file.filename}`)) {
+						fs.unlinkSync(`./uploads/${req.file.filename}`);
+					}
 					res.status(422).send(
 						`Existing Image in Database for ${result.name}.\nTo overwrite system file, add query "overwrite=1"`
 					);
 				} else {
 					errLog(req.file, err, "Image update failed");
-					fs.unlinkSync(`./uploads/${req.file.filename}`);
+					if (fs.existsSync(`./uploads/${req.file.filename}`)) {
+						fs.unlinkSync(`./uploads/${req.file.filename}`);
+					}
 					res.status(500).send(); // Image update failed
 				}
 			});

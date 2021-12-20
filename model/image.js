@@ -49,34 +49,27 @@ let Image = {
 					if (err) {
 						dbConn.end();
 						return callback(err, null);
-					} else if (
-						result[0].image_file_name != null &&
-						overwrite == 0
-					) {
+					} else if (result.length == 0) {
 						dbConn.end();
-						return callback(new Error("Existing File"), result[0]);
+						return callback(new Error("InvalidProductID"), null);
+					} else if (result[0].image_file_name != null && overwrite != 1) {
+						dbConn.end();
+						return callback(new Error("ExistingFile"), result[0]);
 					} else {
-						if (
-							result[0].image_file_name != null &&
-							overwrite == 1
-						) {
-							fs.unlinkSync(
-								`./uploads/${result[0].image_file_name}`
-							);
+						if (result[0].image_file_name != null && overwrite == 1) {
+							if (fs.existsSync(`./uploads/${result[0].image_file_name}`)) {
+								fs.unlinkSync(`./uploads/${result[0].image_file_name}`);
+							}
 						}
 						const sql = `UPDATE product SET image_file_name = ? WHERE productid = ?`;
-						dbConn.query(
-							sql,
-							[filename, productID],
-							(err, result) => {
-								dbConn.end();
-								if (err) {
-									return callback(err, null);
-								}
-								console.log(result);
-								return callback(null, result);
+						dbConn.query(sql, [filename, productID], (err, result) => {
+							dbConn.end();
+							if (err) {
+								return callback(err, null);
 							}
-						);
+							console.log(result);
+							return callback(null, result);
+						});
 					}
 				});
 			}
