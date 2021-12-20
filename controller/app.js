@@ -668,7 +668,7 @@ app.get("/product/chart/:productCateID", function (req, res) {
 });
 
 // GET line chart for click times of a specific product [Done]
-// http://localhost:3000/product/chart
+// http://localhost:3000/lineChart/chart
 app.get("/product/chart/lineChart/chart", function (req, res) {
 	if (
 		req.get("KEY") == process.env.API_KEY_1 ||
