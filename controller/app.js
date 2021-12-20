@@ -584,8 +584,9 @@ app.put("/product/image/:productID", (req, res) => {
 
 //----------------------------------------
 // Start of charts Endpoints
-// GET interest chart [working]
-// http://localhost:3000/interestChart
+
+// GET interest chart [Done]
+// http://localhost:3000/interest/chart
 app.get("/interest/chart", function (req, res) {
 	if (
 		req.get("KEY") == process.env.API_KEY_1 ||
@@ -604,7 +605,6 @@ app.get("/interest/chart", function (req, res) {
 					res.status(200).sendFile(`charts/${result[1]}`, {
 						root: "./",
 					});
-					// res.status(200).send(result);
 				}
 			} else {
 				errLog(req, err, "GET interest pie chart");
@@ -617,6 +617,44 @@ app.get("/interest/chart", function (req, res) {
 	}
 });
 
+// GET price comparison chart for a specific category [working]
+// http://localhost:3000/product/chart/:productCateID
+app.get("/product/chart/:productCateID", function (req, res) {
+	if (
+		req.get("KEY") == process.env.API_KEY_1 ||
+		req.get("KEY") == process.env.API_KEY_2 ||
+		req.get("KEY") == process.env.API_KEY_3
+	) {
+		const productCateID = parseInt(req.params.productCateID);
+		if (isNaN(productCateID)) {
+			console.log("Input product id is NaN!");
+			res.status(400).send("Invalid input");
+			return;
+		}
+	
+		Chart.getBarChart(productCateID, function (err, result) {
+			if (!err) {
+				// no internal error
+				if (result.length == 0) {
+					actLog(req, result[0],"No product in this category");
+					res.status(404).send("No product in this category");
+				} else {
+					actLog(req, result[0], "GET price comparision bar chart");
+					console.log(result[1]);// result[1] is the image generated time
+					res.status(200).sendFile(`charts/${result[1]}`, {
+						root: "./",
+					});
+				}
+			} else {
+				errLog(req, err, "GET price comparision bar chart");
+				res.status(500).end(); // internal error
+			}
+		});
+	} else {
+		errLog(req, null, "Not authorized");
+		res.status(401).send("You are not authorized!");
+	}
+});
 // End of charts Endpoints
 //----------------------------------------
 

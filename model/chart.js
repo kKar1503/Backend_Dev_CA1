@@ -67,11 +67,11 @@ let Chart = {
 									labels.push(result[i].category + " (" + countCate[i] + ")");
 								}
 								let colors = [];
-									colors = randomColor({
-										count: labels.length,
-										format: "rgb",
-										hue: "blue"
-									});
+								colors = randomColor({
+									count: labels.length,
+									format: "rgb",
+									hue: "blue"
+								});
                                 
 								let filename;
 								//----------------------------------------
@@ -127,34 +127,96 @@ let Chart = {
 		});
 	},
 
-	// addCat: function (cat, callback) {
-	// 	var conn = db.getConnection();
-	// 	conn.connect(function (err) {
-	// 		if (err) {
-	// 			return callback(err, null);
-	// 		} else {
-	// 			console.log("Connection established!");
-	// 			const sql = `
-	//                        INSERT INTO
-	//                             category(category, description)
-	//                        VALUES
-	//                             (?, ?)
-	//                        `;
-	// 			conn.query(
-	// 				sql,
-	// 				[cat.category, cat.description],
-	// 				(error, result) => {
-	// 					conn.end();
-	// 					if (error) {
-	// 						return callback(error, null);
-	// 					} else {
-	// 						return callback(null, result);
-	// 					}
-	// 				}
-	// 			);
-	// 		}
-	// 	});
-	// },
+	getBarChart: function (productCateID, callback) {
+		var conn = db.getConnection();
+		conn.connect(function (err) {
+			if (err) {
+				return callback(err, null);
+			} else {
+				const sql =
+					"SELECT name, price FROM product WHERE categoryid = ?";
+				conn.query(sql, [productCateID], (error, result) => {
+					conn.end();
+					if (error) {
+						return callback(error, null);
+					} else {
+						let prices = [];
+						for(let i = 0; i < result.length; i++) {
+							prices.push(result[i].price);
+						}
+
+						let labels = [];
+						for(let i = 0; i < result.length; i++) {
+							labels.push(result[i].name);
+						}
+
+						let backgroundColors = [];
+						backgroundColors = randomColor({
+							count: labels.length,
+							format: "rgb",
+							hue: "blue"
+						});
+
+						let borderColors = [];
+						borderColors = randomColor({
+							count: labels.length,
+							format: "rgb",
+							hue: "green"
+						});
+						//----------------------------------------
+						// Configuration and set up for pie chart (interest category)
+						//----------------------------------------
+						(async () => {
+							let configuration = {
+								type: 'bar',
+								data: {
+									labels: [],
+									datasets: [{
+									  label: 'Price Comparison bar chart for category ' + productCateID,
+									  data: [],
+									  backgroundColor: [],
+									  borderColor: [],
+									  borderWidth: 1
+									}]
+								},
+								options: {
+								  scales: {
+									y: {
+									  beginAtZero: true
+									}
+								  }
+								},
+							};
+
+							// build the configuration
+							configuration.data.datasets[0].data = prices;
+							configuration.data.labels = labels;
+							configuration.data.datasets[0].backgroundColor = backgroundColors;
+							configuration.data.datasets[0].borderColor = borderColors;
+
+							let imageBuffer =
+								await chartJSNodeCanvas.renderToBuffer(
+									configuration
+								);
+							filename =
+								new Date()
+									.toISOString()
+									.replace(/:/g, "-") +
+								" - " +
+								"barChart.PNG";
+
+							// Write image to file
+							fs.writeFileSync(
+								`./charts/${filename}`,
+								imageBuffer
+							);
+							return callback(null, [result, filename]);
+						})();
+					}
+				});
+			}
+		});
+	}
 };
 
 //----------------------------------------
