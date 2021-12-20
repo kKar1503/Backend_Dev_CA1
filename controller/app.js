@@ -708,16 +708,18 @@ app.delete("/chart", function (req, res) {
 		req.get("KEY") == process.env.API_KEY_3
 	) {
 		fs.readdir("./charts", (err, files) => {
-			if (err)
+			if (err) {
 			  console.log(err);
-			else {
+			  res.status(500).send("Cannot delete charts"); 
+			} else {
 				for(let i = 0; i < files.length; i++) {
 					fs.unlinkSync(`./charts/${files[i]}`);
 				}
 				fs.readdir("./charts", (err, files) => { // check if there still get exist charts
-					if (err)
-					  console.log(err);
-					else {
+					if (err) {
+						console.log(err);
+						res.status(500).send("Cannot delete charts"); 
+					} else {
 						if(files.length == 0) {
 							res.status(200).send("Charts deleted!")
 						} else {
