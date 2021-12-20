@@ -26,6 +26,7 @@ const Review = require("../model/review.js");
 const Image = require("../model/image.js");
 const Chart = require("../model/chart.js");
 const Login = require("../model/login.js");
+const { send, nextTick } = require("process");
 
 //----------------------------------------
 // Creating a Log File System
@@ -175,7 +176,7 @@ app.post("/users", async function (req, res) {
 
 // GET all the users [Done]
 // http://localhost:3000/users
-app.get("/users", function (req, res) {
+app.get("/users", authenticateToken, function (req, res) {
 	User.getUsers(function (err, result) {
 		if (!err) {
 			if (result.length == 0) {
@@ -183,6 +184,7 @@ app.get("/users", function (req, res) {
 				res.status(404).send("No users found!"); // User database doesn't have any data
 			} else {
 				actLog(req, result, "Users found!");
+				console.log(req.username);
 				res.status(200).send(result);
 			}
 		} else {
@@ -644,8 +646,15 @@ app.post("/login", function (req, res) {
 				"You are not allowed to access Admin API Keys."
 			);
 		} else {
-			loginData.type = result[0].type;
-			const accessToken = jwt.sign(loginData, process.env.API_KEY_1);
+			delete loginData.pass;
+			let accessToken;
+			if (result[0].type == "SuperAdmin") {
+				accessToken = jwt.sign(loginData, process.env.SECRET_KEY);
+			} else {
+				accessToken = jwt.sign(loginData, process.env.SECRET_KEY, {
+					expiresIn: process.env.TOKEN_EXPIRY,
+				});
+			}
 			res.json({ accessToken: accessToken });
 		}
 	});
@@ -656,6 +665,19 @@ app.post("/login", function (req, res) {
 
 //----------------------------------------
 // Authentication Middleware
+
+function authenticateToken(req, res, next) {
+	const authHeader = req.headers.authorization;
+	const token = authHeader && authHeader.split(" ")[1];
+
+	if (token == null) return res.status(401).send();
+
+	jwt.verify(token, process.env.SECRET_KEY, (err, loginData) => {
+		if (err) return res.status(403).send();
+		req.username = loginData.user;
+		next();
+	});
+}
 
 // Authentication Middleware
 //----------------------------------------
