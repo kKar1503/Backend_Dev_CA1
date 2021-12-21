@@ -527,43 +527,48 @@ app.put("/product/image/:productID", authenticateToken, (req, res) => {
 		overwrite = parseInt(req.query.overwrite);
 	}
 	upload(req, res, function (err) {
-		if (err instanceof multer.MulterError) {
-			errLog(req, err, "Multer Error");
-			if (err.message == "File too large") {
-				res.status(406).send(`Upload Error: ${err.message} (Only accepts up to 1MB)`); // File too large
-			} else {
-				res.status(406).send(`Upload Error: ${err.message}`); // Multer Error
-			}
-		} else if (err) {
-			errLog(req, err, "Non-Multer Error from Multer");
-			res.status(406).send(`Upload Error: ${err.message}`); // Filetype Mismatched
+		if (!req.file) {
+			errLog(req, null, "No file was passed into Image PUT Request");
+			res.status(406).send(`Upload Error: Missing Image`);
 		} else {
-			Image.update(req.file.filename, productID, overwrite, function (err, result) {
-				if (!err) {
-					actLog(req.file, result, "Image updated");
-					res.status(200).send("Image updated."); // Image Updated
-				} else if (err.message == "InvalidProductID") {
-					errLog(req.file, err, "Image PUT Request for invalid Product ID");
-					if (fs.existsSync(`./uploads/${req.file.filename}`)) {
-						fs.unlinkSync(`./uploads/${req.file.filename}`);
-					}
-					res.status(500).send(`No such product with ID = ${productID} in Database`);
-				} else if (err.message == "ExistingFile") {
-					errLog(req.file, err, "Existing Image in Database during Image PUT Request");
-					if (fs.existsSync(`./uploads/${req.file.filename}`)) {
-						fs.unlinkSync(`./uploads/${req.file.filename}`);
-					}
-					res.status(422).send(
-						`Existing Image in Database for ${result.name}.\nTo overwrite system file, add query "overwrite=1"`
-					);
+			if (err instanceof multer.MulterError) {
+				errLog(req, err, "Multer Error");
+				if (err.message == "File too large") {
+					res.status(406).send(`Upload Error: ${err.message} (Only accepts up to 1MB)`); // File too large
 				} else {
-					errLog(req.file, err, "Image update failed");
-					if (fs.existsSync(`./uploads/${req.file.filename}`)) {
-						fs.unlinkSync(`./uploads/${req.file.filename}`);
-					}
-					res.status(500).send(); // Image update failed
+					res.status(406).send(`Upload Error: ${err.message}`); // Multer Error
 				}
-			});
+			} else if (err) {
+				errLog(req, err, "Non-Multer Error from Multer");
+				res.status(406).send(`Upload Error: ${err.message}`); // Filetype Mismatched
+			} else {
+				Image.update(req.file.filename, productID, overwrite, function (err, result) {
+					if (!err) {
+						actLog(req.file, result, "Image updated");
+						res.status(200).send("Image updated."); // Image Updated
+					} else if (err.message == "InvalidProductID") {
+						errLog(req.file, err, "Image PUT Request for invalid Product ID");
+						if (fs.existsSync(`./uploads/${req.file.filename}`)) {
+							fs.unlinkSync(`./uploads/${req.file.filename}`);
+						}
+						res.status(500).send(`No such product with ID = ${productID} in Database`);
+					} else if (err.message == "ExistingFile") {
+						errLog(req.file, err, "Existing Image in Database during Image PUT Request");
+						if (fs.existsSync(`./uploads/${req.file.filename}`)) {
+							fs.unlinkSync(`./uploads/${req.file.filename}`);
+						}
+						res.status(422).send(
+							`Existing Image in Database for ${result.name}.\nTo overwrite system file, add query "overwrite=1"`
+						);
+					} else {
+						errLog(req.file, err, "Image update failed");
+						if (fs.existsSync(`./uploads/${req.file.filename}`)) {
+							fs.unlinkSync(`./uploads/${req.file.filename}`);
+						}
+						res.status(500).send(); // Image update failed
+					}
+				});
+			}
 		}
 	});
 });

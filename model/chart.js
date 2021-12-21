@@ -204,7 +204,7 @@ let Chart = {
 							UPDATE 
 								product 
 							SET 
-								clickTimes = clickTimes + 1
+								click_times = click_times + 1
 							WHERE
 								productid = ?;`;
 				dbConn.query(sql, [productID], (error, result) => {
