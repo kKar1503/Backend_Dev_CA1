@@ -169,7 +169,7 @@ app.post("/users", async function (req, res) {
 
 // GET all the users [Done]
 // http://localhost:3000/users
-app.get("/users", function (req, res) {
+app.get("/users", authenticateToken, function (req, res) {
 	User.getUsers(function (err, result) {
 		if (!err) {
 			if (result.length == 0) {
@@ -282,7 +282,7 @@ app.get("/category", function (req, res) {
 
 // POST New Category [Done]
 // http://localhost:3000/category
-app.post("/category", function (req, res) {
+app.post("/category", authenticateToken, function (req, res) {
 	let cat = {
 		category: req.body.category,
 		description: req.body.description,
@@ -310,7 +310,7 @@ app.post("/category", function (req, res) {
 
 // Add new product to db [Pending]
 // http://localhost:3000/product
-app.post("/product", function (req, res) {
+app.post("/product", authenticateToken, function (req, res) {
 	Product.insert(req.body, function (error, result) {
 		if (error) {
 			errLog(req, err, "Cannot add new product");
@@ -367,7 +367,7 @@ app.get("/product/:id", function (req, res) {
 
 // Delete the product by product ID [Done]
 // http://localhost:3000/product/1
-app.delete("/product/:id", function (req, res) {
+app.delete("/product/:id", authenticateToken, function (req, res) {
 	const productID = parseInt(req.params.id);
 	if (isNaN(productID)) {
 		console.log("Input product id is NaN!");
