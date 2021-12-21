@@ -500,12 +500,15 @@ app.get("/product/image/:productID", (req, res) => {
 			res.status(200).sendFile(`uploads/${result}`, {
 				root: "./",
 			});
-		} else if (err.message == "NoProductFound") {
+		} else if (err.message == "InvalidProductID") {
 			errLog(req, err, "Image GET No Product in DB");
 			res.status(404).send(`No product in database with ID = ${productID}`);
 		} else if (err.message == "NoImage") {
 			errLog(req, err, "Image GET No Image in DB");
 			res.status(404).send(`No image in database for ${result}`);
+		} else if (err.message == "ImageNotFound") {
+			errLog(req, err, "Image GET Image is deleted/moved");
+			res.status(404).send(`Image (${result}) could have been deleted OR moved`);
 		} else {
 			errLog(req, err, "Image GET Request failed");
 			res.status(500).end();
@@ -538,7 +541,7 @@ app.put("/product/image/:productID", authenticateToken, (req, res) => {
 			Image.update(req.file.filename, productID, overwrite, function (err, result) {
 				if (!err) {
 					actLog(req.file, result, "Image updated");
-					res.status(200).end(); // Image Updated
+					res.status(200).send("Image updated."); // Image Updated
 				} else if (err.message == "InvalidProductID") {
 					errLog(req.file, err, "Image PUT Request for invalid Product ID");
 					if (fs.existsSync(`./uploads/${req.file.filename}`)) {

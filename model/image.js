@@ -28,9 +28,11 @@ let Image = {
 					if (err) {
 						return callback(err, null);
 					} else if (result.length == 0) {
-						return callback(new Error(`NoProductFound`), null);
+						return callback(new Error(`InvalidProductID`), null);
 					} else if (result[0].image_file_name == null) {
-						return callback(new Error("NoImage"), result[0].name);
+						return callback(new Error(`NoImage`), result[0].name);
+					} else if (!fs.existsSync(`./uploads/${result[0].image_file_name}`)) {
+						return callback(new Error(`ImageNotFound`), result[0].image_file_name);
 					} else {
 						return callback(null, result[0].image_file_name);
 					}
