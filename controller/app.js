@@ -189,9 +189,11 @@ app.get("/users", authenticateToken, function (req, res) {
 // Find User by ID [Done]
 // http://localhost:3000/users/3
 app.get("/users/:id", function (req, res) {
-	let uid = parseInt(req.params.id);
-	if (isNaN(uid)) {
-		console.log("Input user id is NaN!");
+	let uid;
+	if (!isNaN(req.params.id)) {
+		uid = parseInt(req.params.id);
+	} else {
+		errLog(req, null, "Input user id is NaN!");
 		res.status(400).send("Invalid input");
 		return;
 	}
@@ -216,14 +218,14 @@ app.get("/users/:id", function (req, res) {
 // Update User [Done]
 // http://localhost:3000/users/6
 app.put("/users/:id", function (req, res) {
-	let uid = parseInt(req.params.id);
-
-	if (isNaN(uid)) {
-		errLog(req, err, "Input user id is NaN!");
+	let uid;
+	if (!isNaN(req.params.id)) {
+		uid = parseInt(req.params.id);
+	} else {
+		errLog(req, null, "Input user id is NaN!");
 		res.status(400).send("Invalid input");
 		return;
 	}
-
 	let data = {
 		username: req.body.username, // must match the postman json body
 		email: req.body.email,
@@ -308,16 +310,16 @@ app.post("/category", authenticateToken, function (req, res) {
 //----------------------------------------
 // Start of Product Endpoints
 
-// Add new product to db [Pending]
+// Add new product to db [Done]
 // http://localhost:3000/product
 app.post("/product", authenticateToken, function (req, res) {
-	Product.insert(req.body, function (error, result) {
-		if (error) {
+	Product.insert(req.body, function (err, result) {
+		if (err) {
 			errLog(req, err, "Cannot add new product");
 			if (err.errno == 1062) {
-				res.status(422).send(); // The new username OR new email provided already exists.
+				res.status(422).send();
 			} else {
-				res.status(500).send(); // Unknown error
+				res.status(500).send();
 			}
 		} else {
 			actLog(req, result, "New product added");
@@ -329,13 +331,14 @@ app.post("/product", authenticateToken, function (req, res) {
 // Find the product by product ID [Done]
 // http://localhost:3000/product/3
 app.get("/product/:id", function (req, res) {
-	const productID = parseInt(req.params.id);
-	if (isNaN(productID)) {
-		console.log("Input product id is NaN!");
+	let productID;
+	if (!isNaN(req.params.id)) {
+		productID = parseInt(req.params.id);
+	} else {
+		errLog(req, null, "Input product id is NaN!");
 		res.status(400).send("Invalid input");
 		return;
 	}
-
 	Product.findByID(productID, function (error, result) {
 		if (error) {
 			errLog(req, error, "Cannot find product by id!");
@@ -357,9 +360,7 @@ app.get("/product/:id", function (req, res) {
 					}
 				});
 
-				res.status(200).send(
-					`Info of the matching product (including category name):\n ${JSON.stringify(result)}`
-				);
+				res.status(200).send(result);
 			}
 		}
 	});
@@ -368,22 +369,19 @@ app.get("/product/:id", function (req, res) {
 // Delete the product by product ID [Done]
 // http://localhost:3000/product/1
 app.delete("/product/:id", authenticateToken, function (req, res) {
-	const productID = parseInt(req.params.id);
-	if (isNaN(productID)) {
-		console.log("Input product id is NaN!");
+	let productID;
+	if (!isNaN(req.params.id)) {
+		productID = parseInt(req.params.id);
+	} else {
+		errLog(req, null, "Input product id is NaN!");
 		res.status(400).send("Invalid input");
 		return;
 	}
 
-	Product.delete(productID, (error, result) => {
-		if (error) {
-			if (err.errno == 1451) {
-				errLog(req, error, "Cannot delete or update a parent row"); //ER_ROW_IS_REFERENCED_2
-				res.status(500).send();
-			} else {
-				errLog(req, error, "Cannot delete product");
-				res.status(500).send(); // Unknown error
-			}
+	Product.delete(productID, (err, result) => {
+		if (err) {
+			errLog(req, err, "Cannot delete product");
+			res.status(500).send(); // Unknown error
 		} else {
 			if (result.affectedRows == 0) {
 				actLog(req, result, `Product ${productID} not found!`);
@@ -404,38 +402,44 @@ app.delete("/product/:id", authenticateToken, function (req, res) {
 // Add New review [Done]
 // http://localhost:3000/product/:id/review
 app.post("/product/:id/review", function (req, res) {
-	const productID = parseInt(req.params.id);
-	if (isNaN(productID)) {
-		console.log("Input product id is NaN!");
+	let productID;
+	if (!isNaN(req.params.id)) {
+		productID = parseInt(req.params.id);
+	} else {
+		errLog(req, null, "Input product id is NaN!");
 		res.status(400).send("Invalid input");
 		return;
 	}
-
 	let data = {
 		userid: req.body.userid, // must match the postman json body
 		rating: req.body.rating,
 		review: req.body.review,
 		productID: productID,
 	};
-
+	if (isNaN(data.rating) || parseInt(data.rating) > 5 || parseInt(data.rating) < 1) {
+		errLog(req, null, "Input for rating is invalid!");
+		res.status(500).send();
+		return;
+	}
 	Review.insert(data, function (err, result) {
 		if (err) {
 			errLog(req, err, "Review cannot add!");
 			res.status(500).send(); // Unknown error
 		} else {
 			actLog(req, result, "Review added successfully!");
-			res.status(201).send(`ID of the newly created listing:
-                {"reviewid": ${result.insertId}}`);
+			res.status(201).send({ reviewid: result.insertId });
 		}
 	});
 });
 
-// GET all the reviews of one particular product by product ID [Done]
+// GET all the reviews of one particular product by product ID [Problem]
 // http://localhost:3000/product/2/reviews
 app.get("/product/:id/reviews", function (req, res) {
-	const productID = parseInt(req.params.id);
-	if (isNaN(productID)) {
-		console.log("Input product id is NaN!");
+	let productID;
+	if (!isNaN(req.params.id)) {
+		productID = parseInt(req.params.id);
+	} else {
+		errLog(req, null, "Input product id is NaN!");
 		res.status(400).send("Invalid input");
 		return;
 	}
@@ -465,13 +469,19 @@ app.get("/product/:id/reviews", function (req, res) {
 // POST New Interest [Done]
 // http://localhost:3000/interest/:userid
 app.post("/interest/:userid", function (req, res) {
-	let uid = parseInt(req.params.userid);
-	if (isNaN(uid)) {
-		console.log("Input user id is NaN!");
-		res.status(400).send("Invalid input"); // invalid input
+	let uid;
+	if (!isNaN(req.params.userid)) {
+		uid = parseInt(req.params.userid);
+	} else {
+		errLog(req, null, "Input user id is NaN!");
+		res.status(400).send("Invalid input");
 		return;
 	}
-
+	if (!req.body.categoryids) {
+		errLog(req, null, "Input category ids are invalid!");
+		res.status(400).send("Invalid input");
+		return;
+	}
 	let int = req.body.categoryids;
 	Interest.add(uid, int, function (err, result) {
 		if (!err) {
@@ -493,7 +503,14 @@ app.post("/interest/:userid", function (req, res) {
 // GET Product Image
 // http://localhost:3000/product/image/:productID
 app.get("/product/image/:productID", (req, res) => {
-	let productID = parseInt(req.params.productID);
+	let productID;
+	if (!isNaN(req.params.productID)) {
+		productID = parseInt(req.params.productID);
+	} else {
+		errLog(req, null, "Input product id is NaN!");
+		res.status(400).send("Invalid input for productID");
+		return;
+	}
 	Image.get(productID, function (err, result) {
 		if (!err) {
 			actLog(req, result, "Image GET Request");
@@ -519,9 +536,16 @@ app.get("/product/image/:productID", (req, res) => {
 // PUT Product Image
 // http://localhost:3000/product/image/:productID
 app.put("/product/image/:productID", authenticateToken, (req, res) => {
-	let productID = parseInt(req.params.productID);
+	let productID;
+	if (!isNaN(req.params.productID)) {
+		productID = parseInt(req.params.productID);
+	} else {
+		errLog(req, null, "Input product id is NaN!");
+		res.status(400).send("Invalid input for productID");
+		return;
+	}
 	let overwrite;
-	if (!req.query.overwrite) {
+	if (!req.query.overwrite || isNaN(req.query.overwrite)) {
 		overwrite = 0;
 	} else {
 		overwrite = parseInt(req.query.overwrite);
@@ -605,10 +629,12 @@ app.get("/charts/interest", authenticateToken, function (req, res) {
 // GET price comparison chart for a specific category [Done]
 // http://localhost:3000/charts/prices/:catID
 app.get("/charts/prices/:catID", authenticateToken, function (req, res) {
-	const catID = parseInt(req.params.catID);
-	if (isNaN(catID)) {
-		console.log("Input product id is NaN!");
-		res.status(400).send("Invalid input");
+	let catID;
+	if (!isNaN(req.params.catID)) {
+		catID = parseInt(req.params.catID);
+	} else {
+		errLog(req, null, "Input category id is NaN!");
+		res.status(400).send("Invalid input for catID");
 		return;
 	}
 
@@ -619,14 +645,14 @@ app.get("/charts/prices/:catID", authenticateToken, function (req, res) {
 				actLog(req, result[0], "No product in this category");
 				res.status(404).send("No product in this category");
 			} else {
-				actLog(req, result[0], "GET price comparision bar chart");
+				actLog(req, result[0], "GET price comparison bar chart");
 				console.log(result[1]); // result[1] is the image generated time
 				res.status(200).sendFile(`charts/${result[1]}`, {
 					root: "./",
 				});
 			}
 		} else {
-			errLog(req, err, "GET price comparision bar chart");
+			errLog(req, err, "GET price comparison bar chart");
 			res.status(500).end(); // internal error
 		}
 	});
