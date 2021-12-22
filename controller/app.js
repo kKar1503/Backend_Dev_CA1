@@ -446,8 +446,11 @@ app.get("/product/:id/reviews", function (req, res) {
 
 	Review.getReviews(productID, function (err, result) {
 		if (!err) {
-			if (result.length == 0) {
-				errLog(req, err, "No reviews for this product");
+			if(result == null) {
+				errLog(req, result, "No such product");
+				res.status(404).send("No such product");
+			} else if (result.length == 0) {
+				errLog(req, result, "No reviews for this product");
 				res.status(404).send("No reviews for this product"); // This product doesn't have any review
 			} else {
 				actLog(req, result, "Reviews are retrieved!");
@@ -628,7 +631,7 @@ app.get("/charts/interest", authenticateToken, function (req, res) {
 
 // GET price comparison chart for a specific category [Done]
 // http://localhost:3000/charts/prices/:catID
-app.get("/charts/prices/:catID", authenticateToken, function (req, res) {
+app.get("/charts/prices/:catID", function (req, res) {
 	let catID;
 	if (!isNaN(req.params.catID)) {
 		catID = parseInt(req.params.catID);
@@ -641,8 +644,11 @@ app.get("/charts/prices/:catID", authenticateToken, function (req, res) {
 	Chart.priComparChart(catID, function (err, result) {
 		if (!err) {
 			// no internal error
-			if (result.length == 0) {
-				actLog(req, result[0], "No product in this category");
+			if(result == null) {
+				errLog(req, result, "No such category");
+				res.status(404).send("No such category");
+			} else if (result.length == 0) {
+				errLog(req, result, "No product in this category");
 				res.status(404).send("No product in this category");
 			} else {
 				actLog(req, result[0], "GET price comparison bar chart");
@@ -658,7 +664,7 @@ app.get("/charts/prices/:catID", authenticateToken, function (req, res) {
 	});
 });
 
-// GET line chart for click times of a specific product [Done]
+// GET bar chart for click times of a specific product [Done]
 // http://localhost:3000/charts/click
 app.get("/charts/click", authenticateToken, function (req, res) {
 	Chart.clickTimesChart(function (err, result) {
@@ -668,14 +674,14 @@ app.get("/charts/click", authenticateToken, function (req, res) {
 				actLog(req, result[0], "No products");
 				res.status(404).send("No products");
 			} else {
-				actLog(req, result[0], "GET click times line chart for products");
+				actLog(req, result[0], "GET click times bar chart for products");
 				console.log(result[1]); // result[1] is the image generated time
 				res.status(200).sendFile(`charts/${result[1]}`, {
 					root: "./",
 				});
 			}
 		} else {
-			errLog(req, err, "GET clcik times line chart");
+			errLog(req, err, "GET clcik times bar chart");
 			res.status(500).end(); // internal error
 		}
 	});

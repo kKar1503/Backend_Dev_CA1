@@ -13,7 +13,8 @@ const db = require("./databaseConfig.js");
 const fs = require("fs");
 const { ChartJSNodeCanvas } = require("chartjs-node-canvas");
 var randomColor = require("randomcolor"); // import the script
-const width = 400; //px
+const res = require("express/lib/response");
+const width = 800; //px
 const height = 400; //px
 const chartJSNodeCanvas = new ChartJSNodeCanvas({ width, height });
 
@@ -47,7 +48,7 @@ let Chart = {
 
 						let countCate = [];
 						for (let i = 0; i < highest; i++) {
-							countCate.push(0);
+							countCate.push(0); // to initilaize every ele to 0
 						}
 
 						for (let i = 0; i < result.length; i++) {
@@ -56,13 +57,15 @@ let Chart = {
 						// create and initialize labels array
 						let labels = [];
 
-						var categorySQL = "SELECT DISTINCT category FROM category"; // sql to change to a join table query with category table to get category name
+						var categorySQL = "SELECT category FROM category ORDER BY categoryid"; // sql to change to a join table query with category table to get category name
 						conn.query(categorySQL, function (err, result) {
 							conn.end();
 							if (err) {
 								return callback(err, null);
 							} else {
+								console.log(result);
 								for (let i = 0; i < result.length; i++) {
+									if(!countCate[i]) countCate[i] = 0; // countCate[i] = undefined --> int to 0
 									labels.push(result[i].category + " (" + countCate[i] + ")");
 								}
 								let colors = [];
@@ -119,75 +122,87 @@ let Chart = {
 			if (err) {
 				return callback(err, null);
 			} else {
-				const sql = "SELECT name, price FROM product WHERE categoryid = ?";
-				conn.query(sql, [productCateID], (error, result) => {
-					conn.end();
+				var categorySQL = "SELECT categoryid FROM category WHERE categoryid = ?"; // sql to change to a join table query with category table to get category name
+				conn.query(categorySQL, [productCateID], function (error, result) {
 					if (error) {
+						conn.end();
 						return callback(error, null);
-					} else {
-						let prices = [];
-						for (let i = 0; i < result.length; i++) {
-							prices.push(result[i].price);
-						}
+					} else { 
+						if(result.length == 0) return callback(null, null);
+						const sql = "SELECT name, price FROM product WHERE categoryid = ?";
+						conn.query(sql, [productCateID], (error, result) => {
+							conn.end();
+							if (error) {
+								return callback(error, null);
+							} else {
+								console.log(result);
+								if(result.length == 0) return callback(null, result);
+								// else
+								let prices = [];
+								for (let i = 0; i < result.length; i++) {
+									prices.push(result[i].price);
+								}
 
-						let labels = [];
-						for (let i = 0; i < result.length; i++) {
-							labels.push(result[i].name);
-						}
+								let labels = [];
+								for (let i = 0; i < result.length; i++) {
+									labels.push(result[i].name);
+								}
 
-						let backgroundColors = [];
-						backgroundColors = randomColor({
-							count: labels.length,
-							format: "rgb",
-							hue: "blue",
-						});
+								let backgroundColors = [];
+								backgroundColors = randomColor({
+									count: labels.length,
+									format: "rgb",
+									hue: "blue",
+								});
 
-						let borderColors = [];
-						borderColors = randomColor({
-							count: labels.length,
-							format: "rgb",
-							hue: "green",
-						});
-						//----------------------------------------
-						// Configuration and set up for pie chart (interest category)
-						//----------------------------------------
-						(async () => {
-							let configuration = {
-								type: "bar",
-								data: {
-									labels: [],
-									datasets: [
-										{
-											label: "Price Comparison bar chart for category " + productCateID,
-											data: [],
-											backgroundColor: [],
-											borderColor: [],
-											borderWidth: 1,
+								let borderColors = [];
+								borderColors = randomColor({
+									count: labels.length,
+									format: "rgb",
+									hue: "green",
+								});
+								//----------------------------------------
+								// Configuration and set up for pie chart (interest category)
+								//----------------------------------------
+								(async () => {
+									let configuration = {
+										type: "bar",
+										data: {
+											labels: [],
+											datasets: [
+												{
+													label: "Price Comparison bar chart for category " + productCateID,
+													data: [],
+													backgroundColor: [],
+													borderColor: [],
+													borderWidth: 1,
+												},
+											],
 										},
-									],
-								},
-								options: {
-									scales: {
-										y: {
-											beginAtZero: true,
+										options: {
+											scales: {
+												y: {
+													beginAtZero: true,
+												},
+											},
 										},
-									},
-								},
-							};
+									};
 
-							// build the configuration
-							configuration.data.datasets[0].data = prices;
-							configuration.data.labels = labels;
-							configuration.data.datasets[0].backgroundColor = backgroundColors;
-							configuration.data.datasets[0].borderColor = borderColors;
+									// build the configuration
+									configuration.data.datasets[0].data = prices;
+									configuration.data.labels = labels;
+									configuration.data.datasets[0].backgroundColor = backgroundColors;
+									configuration.data.datasets[0].borderColor = borderColors;
 
-							let imageBuffer = await chartJSNodeCanvas.renderToBuffer(configuration);
-							filename = new Date().toISOString().replace(/:/g, "-") + " - " + "barChart.PNG";
+									let imageBuffer = await chartJSNodeCanvas.renderToBuffer(configuration);
+									filename = new Date().toISOString().replace(/:/g, "-") + " - " + "barChart.PNG";
 
-							// Write image to file
-							fs.writeFileSync(`./charts/${filename}`, imageBuffer);
-							return callback(null, [result, filename]);
-						})();
+									// Write image to file
+									fs.writeFileSync(`./charts/${filename}`, imageBuffer);
+									return callback(null, [result, filename]);
+								})();
+							}
+						});
 					}
 				});
 			}

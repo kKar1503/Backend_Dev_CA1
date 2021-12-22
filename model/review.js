@@ -47,22 +47,32 @@ let Review = {
 		var conn = db.getConnection();
 		conn.connect(function (err) {
 			if (err) {
+				conn.end();
 				return callback(err, null);
 			} else {
-				const sql = `
-                            SELECT 
-                                productid, r.userid, username, rating, review, r.created_at 
-                            FROM 
-                                review AS r, user AS u
-                            WHERE 
-                                productid = ? AND r.userid = u.userid
-                            `;
-				conn.query(sql, [productID], function (err, result) {
-					conn.end();
-					if (err) {
-						return callback(err, null);
-					} else {
-						return callback(null, result);
+				var productSQL = "SELECT productid FROM product WHERE productid = ?"; // sql to change to a join table query with category table to get category name
+				conn.query(productSQL, [productID], function (error, result) {
+					if (error) {
+						conn.end();
+						return callback(error, null);
+					} else { 
+						if(result.length == 0) return callback(null, null); // no such product
+						const sql = `
+									SELECT 
+										productid, r.userid, username, rating, review, r.created_at 
+									FROM 
+										review AS r, user AS u
+									WHERE 
+										productid = ? AND r.userid = u.userid
+									`;
+						conn.query(sql, [productID], function (err, result) {
+							conn.end();
+							if (err) {
+								return callback(err, null);
+							} else {
+								return callback(null, result);
+							}
+						});
 					}
 				});
 			}
