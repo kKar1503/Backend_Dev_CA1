@@ -426,10 +426,10 @@ app.post("/product/:id/review", function (req, res) {
 			errLog(req, err, "Review cannot add!");
 			res.status(500).send(); // Unknown error
 		} else {
-			if(result == null) {
+			if (result == null) {
 				errLog(req, result, "No such product");
 				res.status(404).send("No such product");
-			}else {
+			} else {
 				actLog(req, result, "Review added successfully!");
 				res.status(201).send({ reviewid: result.insertId });
 			}
@@ -451,7 +451,7 @@ app.get("/product/:id/reviews", function (req, res) {
 
 	Review.getReviews(productID, function (err, result) {
 		if (!err) {
-			if(result == null) {
+			if (result == null) {
 				errLog(req, result, "No such product");
 				res.status(404).send("No such product");
 			} else if (result.length == 0) {
@@ -493,16 +493,16 @@ app.post("/interest/:userid", function (req, res) {
 	let int = req.body.categoryids;
 	Interest.add(uid, int, function (err, result) {
 		if (!err) {
-			if(result == null) {
+			if (result == null) {
 				errLog(req, result, "User not exist");
 				res.status(404).send("User not exist");
-			} else{
+			} else {
 				actLog(req, result, "POST Interest");
 				res.status(201).end(); // Created
 			}
 		} else {
-				errLog(req, err, "POST Interest");
-				res.status(500).end(); // Unknown error
+			errLog(req, err, "POST Interest");
+			res.status(500).end(); // Unknown error
 		}
 	});
 });
@@ -655,7 +655,7 @@ app.get("/charts/prices/:catID", function (req, res) {
 	Chart.priComparChart(catID, function (err, result) {
 		if (!err) {
 			// no internal error
-			if(result == null) {
+			if (result == null) {
 				errLog(req, result, "No such category");
 				res.status(404).send("No such category");
 			} else if (result.length == 0) {
@@ -730,7 +730,7 @@ app.delete("/charts", authenticateToken, function (req, res) {
 
 //----------------------------------------
 // Start of Login/API Key Endpoints
-// GET Token [working]
+// GET Token [Done]
 // http://localhost:3000/login
 
 app.post("/login", function (req, res) {
