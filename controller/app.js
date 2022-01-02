@@ -493,11 +493,16 @@ app.post("/interest/:userid", function (req, res) {
 	let int = req.body.categoryids;
 	Interest.add(uid, int, function (err, result) {
 		if (!err) {
-			actLog(req, result, "POST Interest");
-			res.status(201).end(); // Created
+			if(result == null) {
+				errLog(req, result, "User not exist");
+				res.status(404).send("User not exist");
+			} else{
+				actLog(req, result, "POST Interest");
+				res.status(201).end(); // Created
+			}
 		} else {
-			errLog(req, err, "POST Interest");
-			res.status(500).end(); // Unknown error
+				errLog(req, err, "POST Interest");
+				res.status(500).end(); // Unknown error
 		}
 	});
 });
