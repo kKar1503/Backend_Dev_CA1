@@ -426,8 +426,13 @@ app.post("/product/:id/review", function (req, res) {
 			errLog(req, err, "Review cannot add!");
 			res.status(500).send(); // Unknown error
 		} else {
-			actLog(req, result, "Review added successfully!");
-			res.status(201).send({ reviewid: result.insertId });
+			if(result == null) {
+				errLog(req, result, "No such product");
+				res.status(404).send("No such product");
+			}else {
+				actLog(req, result, "Review added successfully!");
+				res.status(201).send({ reviewid: result.insertId });
+			}
 		}
 	});
 });
@@ -548,6 +553,7 @@ app.put("/product/image/:productID", authenticateToken, (req, res) => {
 		return;
 	}
 	let overwrite;
+	// null/empty/undefined
 	if (!req.query.overwrite || isNaN(req.query.overwrite)) {
 		overwrite = 0;
 	} else {

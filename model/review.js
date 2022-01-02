@@ -21,24 +21,33 @@ let Review = {
 			if (err) {
 				return callback(err, null);
 			} else {
-				const sql = `
-                                INSERT INTO
-                                        review (userid, rating, review, productid)
-                                VALUES
-                                        (?, ?, ?, ?) 
-                           `;
-
-				dbConn.query(
-					sql,
-					[data.userid, data.rating, data.review, data.productID],
-					(error, result) => {
+				var productSQL = "SELECT productid FROM product WHERE productid = ?"; // sql to change to a join table query with category table to get category name
+				dbConn.query(productSQL, [data.productID], function (error, result) {
+					if (error) {
 						dbConn.end();
-						if (error) {
-							return callback(error, null); // querry error
-						}
-						return callback(null, result);
+						return callback(error, null);
+					} else { 
+						if(result.length == 0) return callback(null, null); // no such product
+						const sql = `
+										INSERT INTO
+												review (userid, rating, review, productid)
+										VALUES
+												(?, ?, ?, ?) 
+								`;
+
+						dbConn.query(
+							sql,
+							[data.userid, data.rating, data.review, data.productID],
+							(error, result) => {
+								dbConn.end();
+								if (error) {
+									return callback(error, null); // querry error
+								}
+								return callback(null, result);
+							}
+						);
 					}
-				);
+				});
 			}
 		});
 	},
